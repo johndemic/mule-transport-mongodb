@@ -189,6 +189,7 @@
             <groupId>org.codehaus.jackson</groupId>
             <artifactId>jackson-mapper-lgpl</artifactId>
             <version>1.4.2</version>
+            
         </dependency>
 
 

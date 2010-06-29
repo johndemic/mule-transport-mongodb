@@ -43,6 +43,15 @@ public class MongoDBFunctionalTestCase extends FunctionalTestCase {
         });
     }
 
+    public void testCanDispatch() throws Exception {
+        latch = new CountDownLatch(1);        
+        MuleClient client = new MuleClient();
+        String payload = "{\"name\": \"Johnny Fivethousand\"}";
+        client.dispatch("mongodb://stuff", payload, null);
+        assertTrue(latch.await(5, TimeUnit.SECONDS));
+        
+    }
+
     public void testCanInsertStringAndRequestData() throws Exception {
         latch = new CountDownLatch(1);
 
@@ -73,12 +82,15 @@ public class MongoDBFunctionalTestCase extends FunctionalTestCase {
 
 
     public void testCanPollForData() throws Exception {
+        latch = new CountDownLatch(1);
+
         MuleClient client = new MuleClient();
 
         Map<String, String> payload = new HashMap<String, String>();
         payload.put("name", "Johnny Five");
         client.send("vm://input", payload, null);
-
+        assertTrue(latch.await(5, TimeUnit.SECONDS));
+           
         assertNotNull(client.request("mongodb://stuff", 15000).getPayload());
 
 

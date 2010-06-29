@@ -32,7 +32,6 @@ public class MongoDBFunctionalTestCase extends FunctionalTestCase {
         DB db = m.getDB("mule-mongodb");
         db.getCollection("stuff").drop();
 
-        latch = new CountDownLatch(1);
 
         muleContext.registerListener(new EndpointMessageNotificationListener() {
             public void onNotification(final ServerNotification notification) {
@@ -45,6 +44,8 @@ public class MongoDBFunctionalTestCase extends FunctionalTestCase {
     }
 
     public void testCanInsertStringAndRequestData() throws Exception {
+        latch = new CountDownLatch(1);
+
         MuleClient client = new MuleClient();
         String payload = "{\"name\": \"Johnny Five\"}";
         client.send("vm://input", payload, null);
@@ -56,11 +57,13 @@ public class MongoDBFunctionalTestCase extends FunctionalTestCase {
     }
 
     public void testCanInsertMapAndRequestData() throws Exception {
+        latch = new CountDownLatch(1);
+
         MuleClient client = new MuleClient();
         Map<String, String> payload = new HashMap<String, String>();
         payload.put("name", "Johnny Five");
         client.send("vm://input", payload, null);
-
+        assertTrue(latch.await(5, TimeUnit.SECONDS));
         List results = (List) client.request("mongodb://stuff", 15000).getPayload();
 
         assertNotNull(results);

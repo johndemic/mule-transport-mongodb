@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mule xmlns="http://www.mulesource.org/schema/mule/core/2.2"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xmlns:mongodb="http://www.mulesource.org/schema/mule/mongodb/2.2"
+      xmlns:vm="http://www.mulesource.org/schema/mule/vm/2.2"
+      xsi:schemaLocation="
+       http://www.mulesource.org/schema/mule/core/2.2 http://www.mulesource.org/schema/mule/core/2.2/mule.xsd
+       http://www.mulesource.org/schema/mule/mongodb/2.2 http://www.mulesource.org/schema/mule/mongodb/2.2/mule-mongodb.xsd
+       http://www.mulesource.org/schema/mule/vm/2.2 http://www.mulesource.org/schema/mule/vm/2.2/mule-vm.xsd
+       ">
+
+    <mongodb:connector name="mongodbConnector"
+                       database="myDB"
+                       username="user"
+                       password="pass"
+                       hostname="localhost"
+                       port="1234"
+                       pollingFrequency="5000">
+    </mongodb:connector>
+
+    <model>
+        <service name="MongoDB Test Input Service">
+            <inbound>
+                <mongodb:inbound-endpoint collection="stuff" query="{ 'field' : { $gt: value1, $lt: value2 } }"/>                    
+            </inbound>
+            <outbound>
+                <pass-through-router>
+                    <mongodb:outbound-endpoint collection="stuff"/>
+                </pass-through-router>
+            </outbound>
+        </service>
+    </model>
+
+</mule>

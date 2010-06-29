@@ -1,0 +1,157 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<xsd:schema xmlns="http://www.mulesource.org/schema/mule/mongodb/2.2"
+            xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+            xmlns:mule="http://www.mulesource.org/schema/mule/core/2.2"
+            xmlns:schemadoc="http://www.mulesource.org/schema/mule/schemadoc/2.2"
+            targetNamespace="http://www.mulesource.org/schema/mule/mongodb/2.2"
+            elementFormDefault="qualified"
+            attributeFormDefault="unqualified">
+
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace"/>
+    <xsd:import namespace="http://www.mulesource.org/schema/mule/core/2.2"
+                schemaLocation="http://www.mulesource.org/schema/mule/core/2.2/mule.xsd"/>
+    <xsd:import namespace="http://www.mulesource.org/schema/mule/schemadoc/2.2"
+                schemaLocation="http://www.mulesource.org/schema/mule/schemadoc/2.2/mule-schemadoc.xsd"/>
+
+    <xsd:annotation>
+        <xsd:documentation>Support for MongoDB</xsd:documentation>
+        <xsd:appinfo>
+            <schemadoc:short-name>Mongodb</schemadoc:short-name>
+            <schemadoc:page-title>Mongodb Transport</schemadoc:page-title>
+            <schemadoc:transport-features
+                    receiveEvents="true" dispatchEvents="false" responseEvents="true"
+                    requestEvents="false"
+                    transactions="false" streaming="false">
+                <schemadoc:inboundMEPs in-only="${receiver}" in-optional-out="true" in-out="true"/>
+                <schemadoc:outboundMEPs out-only="true" out-in="true" out-optional-in="true"/>
+            </schemadoc:transport-features>
+        </xsd:appinfo>
+    </xsd:annotation>
+
+    <xsd:element name="connector" type="mongodbConnectorType" substitutionGroup="mule:abstract-connector">
+        <xsd:annotation>
+            <xsd:documentation>
+                Support for MongoDB
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:complexType name="mongodbConnectorType">
+        <xsd:complexContent>
+            <xsd:extension base="mule:connectorType">
+                <xsd:attribute name="database" type="xsd:string" use="required">
+                    <xsd:annotation>
+                        <xsd:documentation>
+                            The name of the db to use
+                        </xsd:documentation>
+                    </xsd:annotation>
+                </xsd:attribute>
+
+                <xsd:attribute name="hostname" type="xsd:string">
+                    <xsd:annotation>
+                        <xsd:documentation>
+                            The MongoDB host
+                        </xsd:documentation>
+                    </xsd:annotation>
+                </xsd:attribute>
+
+                <xsd:attribute name="port" type="xsd:string">
+                    <xsd:annotation>
+                        <xsd:documentation>
+                            The MongoDB port
+                        </xsd:documentation>
+                    </xsd:annotation>
+                </xsd:attribute>
+
+                <xsd:attribute name="username" type="xsd:string">
+                    <xsd:annotation>
+                        <xsd:documentation>
+                            The username to connect with
+                        </xsd:documentation>
+                    </xsd:annotation>
+                </xsd:attribute>
+
+                <xsd:attribute name="password" type="xsd:string">
+                    <xsd:annotation>
+                        <xsd:documentation>
+                            The password to connect with
+                        </xsd:documentation>
+                    </xsd:annotation>
+                </xsd:attribute>
+
+
+                <xsd:attribute name="pollingFrequency" type="xsd:string">
+                    <xsd:annotation>
+                        <xsd:documentation>
+                            The frequency at which to query the db
+                        </xsd:documentation>
+                    </xsd:annotation>
+                </xsd:attribute>
+
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <!--
+    The following define endpoint elements for this transport. Attributes for the endpoint can be defined at the section
+    at the bottom
+    -->
+    <xsd:element name="inbound-endpoint" type="inboundEndpointType" substitutionGroup="mule:abstract-inbound-endpoint"/>
+
+    <xsd:complexType name="inboundEndpointType">
+        <xsd:complexContent>
+            <xsd:extension base="mule:inboundEndpointType">
+                <xsd:attributeGroup ref="inboundAddressAttributes"/>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:element name="outbound-endpoint" type="outboundEndpointType"
+                 substitutionGroup="mule:abstract-outbound-endpoint"/>
+    <xsd:complexType name="outboundEndpointType">
+        <xsd:complexContent>
+            <xsd:extension base="mule:abstractOutboundEndpointType">
+                <xsd:group ref="defaultEndpointElements"/>                
+                <xsd:attributeGroup ref="mule:defaultEndpointAttributes"/>
+                <xsd:attributeGroup ref="outboundAddressAttributes"/>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:element name="endpoint" type="globalEndpointType" substitutionGroup="mule:abstract-global-endpoint"/>
+    <xsd:complexType name="globalEndpointType">
+        <xsd:complexContent>
+            <xsd:extension base="mule:globalEndpointType">
+
+                <xsd:attributeGroup ref="inboundAddressAttributes"/>
+                <xsd:attributeGroup ref="propertyAttributes"/>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
+    <xsd:attributeGroup name="outboundAddressAttributes">
+        <xsd:attribute name="collection" type="xsd:string"/>
+    </xsd:attributeGroup>
+
+    <xsd:attributeGroup name="inboundAddressAttributes">
+        <xsd:attribute name="collection" type="xsd:string"/>
+        <xsd:attribute name="query" type="xsd:string"/>
+
+    </xsd:attributeGroup>
+
+    <xsd:attributeGroup name="propertyAttributes">
+    </xsd:attributeGroup>
+
+
+    <xsd:group name="defaultEndpointElements">
+        <xsd:sequence>
+            <xsd:sequence minOccurs="0" maxOccurs="unbounded">
+                <xsd:group ref="mule:endpointTransformers"/>
+
+                <xsd:choice>
+                    <xsd:element ref="mule:abstract-filter" minOccurs="0"/>
+                </xsd:choice>
+            </xsd:sequence>
+        </xsd:sequence>
+    </xsd:group>
+</xsd:schema>

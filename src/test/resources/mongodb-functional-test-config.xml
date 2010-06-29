@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mule xmlns="http://www.mulesource.org/schema/mule/core/2.2"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xmlns:mongodb="http://www.mulesource.org/schema/mule/mongodb/2.2"
+      xmlns:vm="http://www.mulesource.org/schema/mule/vm/2.2"
+      xsi:schemaLocation="
+       http://www.mulesource.org/schema/mule/core/2.2 http://www.mulesource.org/schema/mule/core/2.2/mule.xsd
+       http://www.mulesource.org/schema/mule/mongodb/2.2 http://www.mulesource.org/schema/mule/mongodb/2.2/mule-mongodb.xsd
+       http://www.mulesource.org/schema/mule/vm/2.2 http://www.mulesource.org/schema/mule/vm/2.2/mule-vm.xsd
+       ">
+
+    <mongodb:connector name="mongodbConnector"
+                       database="mule-mongodb"
+                       username="user"
+                       password="pass"
+                       pollingFrequency="5000"
+                       hostname="192.168.1.11"
+
+            >
+    </mongodb:connector>
+
+    <vm:connector name="vmConnector" queueEvents="true"/>
+
+    <model>
+        <service name="MongoDB Test Input Service">
+            <inbound>
+                <vm:inbound-endpoint path="input"/>
+            </inbound>
+            <outbound>
+                <pass-through-router>
+                    <mongodb:outbound-endpoint collection="stuff"/>
+                </pass-through-router>
+            </outbound>
+        </service>
+
+
+        <service name="MongoDB Polling Service">
+            <inbound>
+                <mongodb:inbound-endpoint collection="stuff" query='{ "name": "Johnny Five" }'/>
+            </inbound>
+            <outbound>
+                <pass-through-router>
+                    <vm:outbound-endpoint path="output"/>
+                </pass-through-router>
+            </outbound>
+        </service>
+
+        
+    </model>
+
+</mule>

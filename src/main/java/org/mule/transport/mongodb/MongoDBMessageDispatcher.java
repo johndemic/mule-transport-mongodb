@@ -11,7 +11,7 @@
 package org.mule.transport.mongodb;
 
 import com.mongodb.BasicDBObject;
-import com.mongodb.DBCollection;
+import org.codehaus.jackson.map.ObjectMapper;
 import org.mule.DefaultMuleMessage;
 import org.mule.api.MuleEvent;
 import org.mule.api.MuleMessage;
@@ -27,9 +27,12 @@ public class MongoDBMessageDispatcher extends AbstractMessageDispatcher {
 
     MongoDBConnector connector;
 
+    ObjectMapper mapper;
+
     public MongoDBMessageDispatcher(OutboundEndpoint endpoint) {
         super(endpoint);
         connector = (MongoDBConnector) endpoint.getConnector();
+        mapper = new ObjectMapper();
     }
 
     public void doConnect() throws Exception {
@@ -45,10 +48,15 @@ public class MongoDBMessageDispatcher extends AbstractMessageDispatcher {
                         .split("\\.")[2];
 
         event.transformMessage();
-        
+
         Object payload = event.getMessage().getPayload();
 
         BasicDBObject object = null;
+
+
+        if (payload instanceof String) {
+            object = mapper.readValue((String) payload, BasicDBObject.class);
+        }
 
         if (payload instanceof Map) {
             object = new BasicDBObject((Map) payload);

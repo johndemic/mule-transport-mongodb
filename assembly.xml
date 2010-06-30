@@ -9,15 +9,13 @@ Assembly descriptor for the full distribution.
     </formats>
     <fileSets>
         <fileSet>
-            <directory>src</directory>
-            <outputDirectory>src</outputDirectory>
+            <directory>target</directory>
+            <outputDirectory>lib/user</outputDirectory>
+            <includes>
+                <include>*.jar</include>
+            </includes>
         </fileSet>
-        <!-- If a licenses directory is present, copy it.  this would contain text files describing the licenses for each
-             non-Mule dependencies -->
-        <fileSet>
-            <directory>licenses</directory>
-            <outputDirectory>licenses</outputDirectory>
-        </fileSet>
+       
     </fileSets>
     <dependencySets>
         <dependencySet>
@@ -26,12 +24,14 @@ Assembly descriptor for the full distribution.
             <!-- Include only the non-Mule libraries needed by your application -->
             <includes>
                 <!-- Make sure we include this project's artifact -->
-                <include>org.mule.transports:mule-transport-mongodb</include>
 
                 <!--
                 Add any 3rd party libraries here.  Note you can use wildcards i.e.
                 <include>net.sf.someproject:*</include>
                 -->
+                <include>org.codehaus.jackson:*</include>
+                <include>org.mongodb:*</include>
+
             </includes>
 
         </dependencySet>

@@ -6,7 +6,7 @@
     <artifactId>mule-transport-mongodb</artifactId>
     <packaging>jar</packaging>
     <name>Mule Mongodb Transport</name>
-    <version>2.2.1.3-SNAPSHOT</version>
+    <version>2.2.1.3</version>
     <description>Support for MongoDB</description>
 
     <properties>
@@ -82,7 +82,7 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-checkstyle-plugin</artifactId>
                 <configuration>
-                    <configLocation>http://mulesource.org/download/attachments/92/checkstyle.xml?version=1
+                    <configLocation>http://www.muleforge.org/download/checkstyle.xml
                     </configLocation>
                 </configuration>
             </plugin>
@@ -220,9 +220,9 @@
     </issueManagement>
 
     <scm>
-        <connection>scm:svn:http://svn.muleforge.org/mongodb/tags/mule-transport-mongodb-2.2.1.2</connection>
-        <developerConnection>scm:svn:https://svn.muleforge.org/mongodb/tags/mule-transport-mongodb-2.2.1.2</developerConnection>
-        <url>http://svn.mongodb.muleforge.org/tags/mule-transport-mongodb-2.2.1.2</url>
+        <connection>scm:svn:http://svn.muleforge.org/mongodb/tags/mule-transport-mongodb-2.2.1.3</connection>
+        <developerConnection>scm:svn:https://svn.muleforge.org/mongodb/tags/mule-transport-mongodb-2.2.1.3</developerConnection>
+        <url>http://svn.mongodb.muleforge.org/tags/mule-transport-mongodb-2.2.1.3</url>
     </scm>
 
 

@@ -43,16 +43,23 @@ public class MongoDBFunctionalTestCase extends FunctionalTestCase {
         });
     }
 
-    public void testCanDispatch() throws Exception {
-        latch = new CountDownLatch(1);        
+    public void testCanInsertStringIntoSubCollectionWithExpressionAndRequestResults() throws Exception {
+        latch = new CountDownLatch(1);
+
         MuleClient client = new MuleClient();
-        String payload = "{\"name\": \"Johnny Fivethousand\"}";
-        client.dispatch("mongodb://stuff", payload, null);
+        String payload = "{\"name\": \"Johnny Five Foo\"}";
+        Map properties = new HashMap();
+        properties.put("collectionHeader","foo");
+        client.send("vm://input.sub.expr", payload, properties);
         assertTrue(latch.await(5, TimeUnit.SECONDS));
-        
+        List results = (List) client.request("mongodb://stuff.sub.foo", 15000).getPayload();
+        assertNotNull(results);
+        Map result = (Map) results.get(0);
+        assertEquals(result.get("name"), "Johnny Five Foo");
     }
 
-    public void testCanInsertStringAndRequestResults() throws Exception {
+
+    public void testCanInsertStringIntoSubCollectionAndRequestResults() throws Exception {
         latch = new CountDownLatch(1);
 
         MuleClient client = new MuleClient();
@@ -65,8 +72,15 @@ public class MongoDBFunctionalTestCase extends FunctionalTestCase {
         assertEquals(result.get("name"), "Johnny Five Sub");
     }
 
+    public void testCanDispatch() throws Exception {
+        latch = new CountDownLatch(1);
+        MuleClient client = new MuleClient();
+        String payload = "{\"name\": \"Johnny Fivethousand\"}";
+        client.dispatch("mongodb://stuff", payload, null);
+        assertTrue(latch.await(5, TimeUnit.SECONDS));
+    }
 
-    public void testCanInsertStringIntoSubCollectionAndRequestResults() throws Exception {
+    public void testCanInsertStringAndRequestResults() throws Exception {
         latch = new CountDownLatch(1);
 
         MuleClient client = new MuleClient();
@@ -105,7 +119,7 @@ public class MongoDBFunctionalTestCase extends FunctionalTestCase {
         payload.put("name", "Johnny Five");
         client.send("vm://input", payload, null);
         assertTrue(latch.await(5, TimeUnit.SECONDS));
-           
+
         assertNotNull(client.request("mongodb://stuff", 15000).getPayload());
 
 

@@ -49,6 +49,17 @@
             </outbound>
         </service>
 
+         <service name="MongoDB Test Input Service With Expression">
+            <inbound>
+                <vm:inbound-endpoint path="input.sub.expr"/>
+            </inbound>
+            <outbound>
+                <pass-through-router>
+                    <mongodb:outbound-endpoint collection="stuff.sub.#[header:collectionHeader]"/>
+                </pass-through-router>
+            </outbound>
+        </service>
+
 
         <service name="MongoDB Polling Service">
             <inbound>

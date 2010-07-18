@@ -43,9 +43,14 @@ public class MongoDBMessageDispatcher extends AbstractMessageDispatcher {
     }
 
     public void doDispatch(MuleEvent event) throws Exception {
-        String collection =
-                event.getMuleContext().getExpressionManager().parse(event.getEndpoint().getName(), event.getMessage())
-                        .split("\\.")[2];
+
+        String evaluatedEndpoint =
+                event.getMuleContext().getExpressionManager().parse(event.getEndpoint().getName(), event.getMessage());
+        logger.debug("Evaluated endpoint: " + evaluatedEndpoint);
+
+        String collection = evaluatedEndpoint.split("\\.", 3)[2];
+
+        logger.debug("Dispatching to collection: " + collection);
 
         event.transformMessage();
 

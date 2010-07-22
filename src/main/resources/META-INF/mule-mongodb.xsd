@@ -134,6 +134,7 @@
 
     <xsd:attributeGroup name="inboundAddressAttributes">
         <xsd:attribute name="collection" type="xsd:string"/>
+        <xsd:attribute name="bucket" type="xsd:string"/>
         <xsd:attribute name="query" type="xsd:string"/>
     </xsd:attributeGroup>
 

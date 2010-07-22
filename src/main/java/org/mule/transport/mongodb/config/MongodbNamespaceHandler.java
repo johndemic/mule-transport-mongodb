@@ -28,8 +28,10 @@ public class MongodbNamespaceHandler extends AbstractMuleNamespaceHandler {
 
         registerEndpointDefinitionParser("inbound-endpoint",
                 new TransportEndpointDefinitionParser(MongoDBConnector.MONGODB,
-                        InboundEndpointFactoryBean.class, new String[]{"collection"}));
-       
+                        TransportEndpointDefinitionParser.PROTOCOL, InboundEndpointFactoryBean.class,
+                        TransportEndpointDefinitionParser.RESTRICTED_ENDPOINT_ATTRIBUTES,
+                        new String[][]{new String[]{"collection"}, new String[]{"bucket"}}, new String[][]{}));
+
         registerEndpointDefinitionParser("outbound-endpoint",
                 new TransportEndpointDefinitionParser(MongoDBConnector.MONGODB,
                         TransportEndpointDefinitionParser.PROTOCOL, OutboundEndpointFactoryBean.class,

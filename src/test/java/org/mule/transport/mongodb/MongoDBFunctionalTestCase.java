@@ -53,6 +53,41 @@ public class MongoDBFunctionalTestCase extends FunctionalTestCase {
         });
     }
 
+    public void testCanPollForData() throws Exception {
+
+        MuleClient client = new MuleClient();
+
+        Map<String, String> payload = new HashMap<String, String>();
+        payload.put("name", "Johnny Five");
+        client.send("vm://input", payload, null);
+        assertTrue(latch.await(5, TimeUnit.SECONDS));
+
+        assertNotNull(client.request("mongodb://stuff", 15000).getPayload());
+
+        List results = (List) client.request("vm://output", 15000).getPayload();
+        assertNotNull(results);
+        assertEquals(1, results.size());
+
+        Map result = (Map) results.get(0);
+        assertEquals(result.get("name"), "Johnny Five");
+    }
+
+
+    public void testCanPollForFiles() throws Exception {
+
+        MuleClient client = new MuleClient();
+
+        MuleMessage result = client.send("mongodb://bucket:somefiles", new File("src/test/resources/test.dat"), null);
+        assertNotNull(result);
+        GridFSFile file = (GridFSFile) result.getPayload();
+        assertEquals("test.dat", file.getFilename());
+        assertEquals("b6d81b360a5672d80c27430f39153e2c", file.getMD5());
+
+        List results = (List) client.request("vm://output.somefiles", 15000).getPayload();
+        assertNotNull(results);
+        assertTrue(results.size() > 0);
+    }
+
     public void testCanInsertFileIntoGridFs() throws Exception {
         MuleClient client = new MuleClient();
         MuleMessage result = client.send("mongodb://bucket:somefiles", new File("src/test/resources/test.dat"), null);
@@ -186,28 +221,6 @@ public class MongoDBFunctionalTestCase extends FunctionalTestCase {
         assertNotNull(results);
         Map result = (Map) results.get(0);
         assertEquals(result.get("name"), "Johnny Five");
-    }
-
-
-    public void testCanPollForData() throws Exception {
-
-        MuleClient client = new MuleClient();
-
-        Map<String, String> payload = new HashMap<String, String>();
-        payload.put("name", "Johnny Five");
-        client.send("vm://input", payload, null);
-        assertTrue(latch.await(5, TimeUnit.SECONDS));
-
-        assertNotNull(client.request("mongodb://stuff", 15000).getPayload());
-
-
-        List results = (List) client.request("vm://output", 15000).getPayload();
-        assertNotNull(results);
-        assertTrue(results.size() == 1);
-
-        Map result = (Map) results.get(0);
-        assertEquals(result.get("name"), "Johnny Five");
-
     }
 
 

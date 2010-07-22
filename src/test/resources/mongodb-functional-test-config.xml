@@ -83,6 +83,17 @@
             </outbound>
         </service>
 
+         <service name="MongoDB GridFS Polling Service">
+            <inbound>
+                <mongodb:inbound-endpoint bucket="somefiles" query='{ "filename": "test.dat" }'/>
+            </inbound>
+            <outbound>
+                <pass-through-router>
+                    <vm:outbound-endpoint path="output.somefiles"/>
+                </pass-through-router>
+            </outbound>
+        </service>
+
 
     </model>
 

@@ -15,7 +15,7 @@
                        username="user"
                        password="pass"
                        pollingFrequency="5000"
-                       hostname="192.168.1.11"
+                       hostname="localhost"
 
             >
     </mongodb:connector>

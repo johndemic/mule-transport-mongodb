@@ -65,6 +65,7 @@ public class MongoDBMessageDispatcher extends AbstractMessageDispatcher {
             logger.debug("Dispatching to collection: " + destination);
             doDispatchToCollection(event, destination);
         } else {
+            logger.debug("Dispatching to bucket: " + destination);
             doDispatchToBucket(event, destination.split("bucket:")[1]);
         }
 
@@ -152,9 +153,9 @@ public class MongoDBMessageDispatcher extends AbstractMessageDispatcher {
         if (StringUtils.isNotBlank(filename)) {
             logger.debug("Setting filename on GridFS file to: " + filename);
             file.setFilename(filename);
-        }
+        }       
 
-
+        logger.debug("Attempting to save file: " + file.getFilename());
         file.save();
         return file;
     }

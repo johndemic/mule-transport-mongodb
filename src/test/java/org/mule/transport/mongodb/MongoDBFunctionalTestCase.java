@@ -31,6 +31,12 @@ public class MongoDBFunctionalTestCase extends FunctionalTestCase {
         return "mongodb-functional-test-config.xml";
     }
 
+
+    @Override
+    protected void suitePreSetUp() throws Exception {
+        super.suitePreSetUp();
+    }
+
     @Override
     protected void doSetUp() throws Exception {
         super.doSetUp();
@@ -38,10 +44,11 @@ public class MongoDBFunctionalTestCase extends FunctionalTestCase {
         latch = new CountDownLatch(1);
 
         logger.debug("Dropping collection");
-        Mongo m = new Mongo("192.168.1.11", 27017);
+        Mongo m = new Mongo("localhost", 27017);
         DB db = m.getDB("mule-mongodb");
-        db.getCollection("stuff").drop();
-        db.getCollection("somefiles").drop();
+        db.dropDatabase();
+        db.requestDone();
+
 
         muleContext.registerListener(new EndpointMessageNotificationListener() {
             public void onNotification(final ServerNotification notification) {
@@ -52,6 +59,71 @@ public class MongoDBFunctionalTestCase extends FunctionalTestCase {
             }
         });
     }
+
+    public void testCanPollForFiles() throws Exception {
+
+        MuleClient client = new MuleClient();
+
+        MuleMessage result = client.send("mongodb://bucket:somefiles", new File("src/test/resources/test.dat"), null);
+        assertNotNull(result);
+        GridFSFile file = (GridFSFile) result.getPayload();
+        assertEquals("test.dat", file.getFilename());
+        assertEquals("b6d81b360a5672d80c27430f39153e2c", file.getMD5());
+
+        result = client.send("mongodb://bucket:somefiles", new File("src/test/resources/test.dat"), null);
+        assertNotNull(result);
+        file = (GridFSFile) result.getPayload();
+        assertEquals("test.dat", file.getFilename());
+        assertEquals("b6d81b360a5672d80c27430f39153e2c", file.getMD5());
+
+        List results = (List) client.request("vm://output.somefiles", 15000).getPayload();
+        results = (List) client.request("vm://output.somefiles", 15000).getPayload();
+        assertNotNull(results);
+        assertTrue(results.size() > 0);
+    }
+
+    public void testCanInsertStringAndRequestResults() throws Exception {
+
+        MuleClient client = new MuleClient();
+        String payload = "{\"name\": \"Johnny Five\"}";
+        client.send("vm://input", payload, null);
+        assertTrue(latch.await(5, TimeUnit.SECONDS));
+        List results = (List) client.request("mongodb://stuff", 15000).getPayload();
+        assertNotNull(results);
+        Map result = (Map) results.get(0);
+        assertEquals(result.get("name"), "Johnny Five");
+    }
+
+
+    public void testCanInsertStringIntoSubCollectionWithExpressionAndRequestResults() throws Exception {
+
+        MuleClient client = new MuleClient();
+        String payload = "{\"name\": \"Johnny Five Foo\"}";
+        Map properties = new HashMap();
+        properties.put("collectionHeader", "foo");
+        client.send("vm://input.sub.expr", payload, properties);
+        assertTrue(latch.await(5, TimeUnit.SECONDS));
+        List results = (List) client.request("mongodb://stuff.sub.foo", 15000).getPayload();
+        assertNotNull(results);
+        Map result = (Map) results.get(0);
+        assertEquals(result.get("name"), "Johnny Five Foo");
+    }
+
+
+    public void testCanRequestFiles() throws Exception {
+
+        MuleClient client = new MuleClient();
+
+        MuleMessage result = client.send("mongodb://bucket:somefiles", new File("src/test/resources/test.dat"), null);
+        assertNotNull(result);
+        GridFSFile file = (GridFSFile) result.getPayload();
+        assertEquals("test.dat", file.getFilename());
+        assertEquals("b6d81b360a5672d80c27430f39153e2c", file.getMD5());
+
+        List results = (List) client.request("mongodb://bucket:somefiles", 15000).getPayload();
+        assertNotNull(results);
+    }
+
 
     public void testCanPollForData() throws Exception {
 
@@ -72,21 +144,6 @@ public class MongoDBFunctionalTestCase extends FunctionalTestCase {
         assertEquals(result.get("name"), "Johnny Five");
     }
 
-
-    public void testCanPollForFiles() throws Exception {
-
-        MuleClient client = new MuleClient();
-
-        MuleMessage result = client.send("mongodb://bucket:somefiles", new File("src/test/resources/test.dat"), null);
-        assertNotNull(result);
-        GridFSFile file = (GridFSFile) result.getPayload();
-        assertEquals("test.dat", file.getFilename());
-        assertEquals("b6d81b360a5672d80c27430f39153e2c", file.getMD5());
-
-        List results = (List) client.request("vm://output.somefiles", 15000).getPayload();
-        assertNotNull(results);
-        assertTrue(results.size() > 0);
-    }
 
     public void testCanInsertFileIntoGridFs() throws Exception {
         MuleClient client = new MuleClient();
@@ -148,6 +205,7 @@ public class MongoDBFunctionalTestCase extends FunctionalTestCase {
         assertEquals("b6d81b360a5672d80c27430f39153e2c", file.getMD5());
     }
 
+
     public void testCannotInsertUnsupportedPayloadIntoGridFs() throws Exception {
         MuleClient client = new MuleClient();
 
@@ -159,21 +217,6 @@ public class MongoDBFunctionalTestCase extends FunctionalTestCase {
             exceptionThrown = true;
         }
         assertTrue(exceptionThrown);
-    }
-
-
-    public void testCanInsertStringIntoSubCollectionWithExpressionAndRequestResults() throws Exception {
-
-        MuleClient client = new MuleClient();
-        String payload = "{\"name\": \"Johnny Five Foo\"}";
-        Map properties = new HashMap();
-        properties.put("collectionHeader", "foo");
-        client.send("vm://input.sub.expr", payload, properties);
-        assertTrue(latch.await(5, TimeUnit.SECONDS));
-        List results = (List) client.request("mongodb://stuff.sub.foo", 15000).getPayload();
-        assertNotNull(results);
-        Map result = (Map) results.get(0);
-        assertEquals(result.get("name"), "Johnny Five Foo");
     }
 
 
@@ -194,18 +237,6 @@ public class MongoDBFunctionalTestCase extends FunctionalTestCase {
         String payload = "{\"name\": \"Johnny Fivethousand\"}";
         client.dispatch("mongodb://stuff", payload, null);
         assertTrue(latch.await(5, TimeUnit.SECONDS));
-    }
-
-    public void testCanInsertStringAndRequestResults() throws Exception {
-
-        MuleClient client = new MuleClient();
-        String payload = "{\"name\": \"Johnny Five\"}";
-        client.send("vm://input", payload, null);
-        assertTrue(latch.await(5, TimeUnit.SECONDS));
-        List results = (List) client.request("mongodb://stuff", 15000).getPayload();
-        assertNotNull(results);
-        Map result = (Map) results.get(0);
-        assertEquals(result.get("name"), "Johnny Five");
     }
 
 

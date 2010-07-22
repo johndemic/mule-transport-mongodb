@@ -27,6 +27,17 @@
     </notifications>
 
     <model>
+
+        <service name="MongoDB GridFS Output Service">
+            <inbound>
+                <vm:inbound-endpoint path="gridfs.in"/>
+            </inbound>
+            <outbound>
+                <pass-through-router>
+                    <mongodb:outbound-endpoint bucket="gridstuff"/>
+                </pass-through-router>
+            </outbound>
+        </service>
         <service name="MongoDB Test Input Service">
             <inbound>
                 <vm:inbound-endpoint path="input"/>

@@ -11,13 +11,18 @@
 package org.mule.transport.mongodb;
 
 import com.mongodb.BasicDBObject;
+import com.mongodb.gridfs.GridFS;
+import com.mongodb.gridfs.GridFSInputFile;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.mule.DefaultMuleMessage;
 import org.mule.api.MuleEvent;
 import org.mule.api.MuleMessage;
 import org.mule.api.endpoint.OutboundEndpoint;
 import org.mule.transport.AbstractMessageDispatcher;
+import org.mule.util.StringUtils;
 
+import java.io.File;
+import java.io.InputStream;
 import java.util.Map;
 
 /**
@@ -42,7 +47,9 @@ public class MongoDBMessageDispatcher extends AbstractMessageDispatcher {
 
     }
 
+
     public void doDispatch(MuleEvent event) throws Exception {
+
 
         logger.debug("Attempting to evaluate endpoint: " + event.getEndpoint().getEndpointURI().toString());
         String evaluatedEndpoint =
@@ -50,12 +57,45 @@ public class MongoDBMessageDispatcher extends AbstractMessageDispatcher {
                         event.getMessage());
         logger.debug("Evaluated endpoint: " + evaluatedEndpoint);
 
-        String collection = evaluatedEndpoint.split("://")[1];
-
-        logger.debug("Dispatching to collection: " + collection);
+        String destination = evaluatedEndpoint.split("://")[1];
 
         event.transformMessage();
 
+        if (!destination.startsWith("bucket:")) {
+            logger.debug("Dispatching to collection: " + destination);
+            doDispatchToCollection(event, destination);
+        } else {
+            doDispatchToBucket(event, destination.split("bucket:")[1]);
+        }
+
+    }
+
+    public MuleMessage doSend(MuleEvent event) throws Exception {
+
+        logger.debug("Attempting to evaluate endpoint: " + event.getEndpoint().getEndpointURI().toString());
+        String evaluatedEndpoint =
+                event.getMuleContext().getExpressionManager().parse(event.getEndpoint().getEndpointURI().toString(),
+                        event.getMessage());
+
+        logger.debug("Evaluated endpoint: " + evaluatedEndpoint);
+
+        String destination = evaluatedEndpoint.split("://")[1];
+
+        Object result;
+
+        event.transformMessage();
+
+        if (!destination.startsWith("bucket:")) {
+            logger.debug("Dispatching to collection: " + destination);
+            result = doDispatchToCollection(event, destination);
+        } else {
+            result = doDispatchToBucket(event, destination.split("bucket:")[1]);
+        }
+
+        return new DefaultMuleMessage(result);
+    }
+
+    protected Object doDispatchToCollection(MuleEvent event, String collection) throws Exception {
         Object payload = event.getMessage().getPayload();
 
         BasicDBObject object = null;
@@ -80,11 +120,43 @@ public class MongoDBMessageDispatcher extends AbstractMessageDispatcher {
         synchronized (this) {
             connector.getDb().getCollection(collection).insert(object);
         }
+
+        return object;
     }
 
-    public MuleMessage doSend(MuleEvent event) throws Exception {
-        doDispatch(event);
-        return new DefaultMuleMessage(event.getMessage().getPayload());
+    protected Object doDispatchToBucket(MuleEvent event, String bucket) throws Exception {
+        GridFS gridFS = new GridFS(connector.getDb(), bucket);
+
+        Object payload = event.getMessage().getPayload();
+
+        GridFSInputFile file = null;
+
+        if (payload instanceof File) {
+            file = gridFS.createFile((File) payload);
+        }
+
+        if (payload instanceof InputStream) {
+            file = gridFS.createFile((InputStream) payload);
+        }
+
+        if (payload instanceof byte[]) {
+            file = gridFS.createFile((byte[]) payload);
+        }
+
+        if (file == null) {
+            throw new MongoDBException("Cannot persist objects of type to GridFS: " + payload.getClass());
+        }
+
+        String filename = event.getMessage().getStringProperty(MongoDBConnector.PROPERTY_FILENAME,"");
+
+        if (StringUtils.isNotBlank(filename)) {
+            logger.debug("Setting filename on GridFS file to: " + filename);
+            file.setFilename(filename);
+        }
+
+
+        file.save();
+        return file;
     }
 
 }

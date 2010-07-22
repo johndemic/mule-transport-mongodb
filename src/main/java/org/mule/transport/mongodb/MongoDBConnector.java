@@ -22,13 +22,15 @@ import org.mule.api.lifecycle.InitialisationException;
 public class MongoDBConnector extends AbstractConnector
 {
 
+    public static final String PROPERTY_FILENAME = "filename";
+
     String database;
     String hostname = "localhost";
     String port = "27017";
     String username;
     String password;
     Long pollingFrequency = 1000L;
-
+    
     Mongo mongo;
     DB db;
 

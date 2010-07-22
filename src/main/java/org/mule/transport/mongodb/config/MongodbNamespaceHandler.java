@@ -13,6 +13,7 @@ import org.mule.config.spring.factories.InboundEndpointFactoryBean;
 import org.mule.config.spring.factories.OutboundEndpointFactoryBean;
 import org.mule.config.spring.handlers.AbstractMuleNamespaceHandler;
 import org.mule.config.spring.parsers.MuleDefinitionParser;
+import org.mule.config.spring.parsers.assembly.configuration.PrefixValueMap;
 import org.mule.config.spring.parsers.specific.endpoint.TransportEndpointDefinitionParser;
 import org.mule.endpoint.URIBuilder;
 import org.mule.transport.mongodb.MongoDBConnector;
@@ -25,13 +26,15 @@ public class MongodbNamespaceHandler extends AbstractMuleNamespaceHandler {
 
     public void init() {
 
-        registerEndpointDefinitionParser("outbound-endpoint",
-                new TransportEndpointDefinitionParser(MongoDBConnector.MONGODB,
-                        OutboundEndpointFactoryBean.class, new String[]{"collection"}));
-
         registerEndpointDefinitionParser("inbound-endpoint",
                 new TransportEndpointDefinitionParser(MongoDBConnector.MONGODB,
                         InboundEndpointFactoryBean.class, new String[]{"collection"}));
+       
+        registerEndpointDefinitionParser("outbound-endpoint",
+                new TransportEndpointDefinitionParser(MongoDBConnector.MONGODB,
+                        TransportEndpointDefinitionParser.PROTOCOL, OutboundEndpointFactoryBean.class,
+                        TransportEndpointDefinitionParser.RESTRICTED_ENDPOINT_ATTRIBUTES,
+                        new String[][]{new String[]{"collection"}, new String[]{"bucket"}}, new String[][]{}));
 
 
         registerConnectorDefinitionParser(MongoDBConnector.class);
@@ -39,6 +42,9 @@ public class MongodbNamespaceHandler extends AbstractMuleNamespaceHandler {
 
     protected void registerEndpointDefinitionParser(String element, MuleDefinitionParser parser) {
         parser.addAlias("collection", URIBuilder.PATH);
+        parser.addAlias("bucket", URIBuilder.PATH);
+        parser.addMapping("bucket", new PrefixValueMap("bucket" + ":"));
+
         registerBeanDefinitionParser(element, parser);
     }
 

@@ -10,43 +10,53 @@ import org.mule.DefaultMuleMessage;
 import org.mule.api.MuleMessage;
 import org.mule.api.endpoint.InboundEndpoint;
 import org.mule.transport.AbstractMessageRequester;
+import org.mule.util.StringUtils;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-
 public class MongoDBMessageRequester extends AbstractMessageRequester {
 
     ObjectMapper mapper;
 
-
     public MongoDBMessageRequester(InboundEndpoint endpoint) {
         super(endpoint);
         mapper = new ObjectMapper();
-
     }
 
     @Override
     protected MuleMessage doRequest(long timeout) throws Exception {
 
-        String destination = endpoint.getEndpointURI().toString().split("://")[1];
+        String query = (String) endpoint.getEndpointURI().getParams().get("query");
+        logger.debug("Query string: " + query);
+
+        String destination = endpoint.getEndpointURI().toString().split("://")[1].split("\\?")[0];
+
         if (!destination.startsWith("bucket:")) {
             logger.debug("Requesting  collection: " + destination);
-            return new DefaultMuleMessage(doRequestForCollection(destination));
+            return new DefaultMuleMessage(doRequestForCollection(destination, query));
         } else {
             logger.debug("Requesting bucket: " + destination);
-            return new DefaultMuleMessage(doRequestForBucket(destination.split("bucket:")[1]));
+            return new DefaultMuleMessage(doRequestForBucket(destination.split("bucket:")[1], query));
         }
     }
 
-
-    Object doRequestForCollection(String collection) {
+    Object doRequestForCollection(String collection, String queryString) throws Exception {
 
         List<DBObject> result = new ArrayList<DBObject>();
 
         logger.debug("Requesting all documents in collection: " + collection);
-        DBCursor cursor = ((MongoDBConnector) connector).getDb().getCollection(collection).find();
+
+        DBCursor cursor;
+
+        if (StringUtils.isNotBlank(queryString)) {
+            BasicDBObject query = mapper.readValue(queryString, BasicDBObject.class);
+            cursor = ((MongoDBConnector) connector).getDb().getCollection(collection).find(query);
+        } else {
+            cursor = ((MongoDBConnector) connector).getDb().getCollection(collection).find();
+
+        }
 
         while (cursor.hasNext()) {
             result.add(cursor.next());
@@ -55,11 +65,16 @@ public class MongoDBMessageRequester extends AbstractMessageRequester {
         return result;
     }
 
-    Object doRequestForBucket(String bucket) {
+    Object doRequestForBucket(String bucket, String queryString) throws Exception {
         GridFS gridFS = new GridFS(((MongoDBConnector) connector).getDb(), bucket);
-        BasicDBObject query = null;
+
+        if (StringUtils.isBlank(queryString))
+            queryString = "{}";
+
+        BasicDBObject query;
+
         try {
-            query = mapper.readValue("{}", BasicDBObject.class);
+            query = mapper.readValue(queryString, BasicDBObject.class);
         } catch (IOException e) {
             throw new MongoDBException(e);
         }
@@ -68,6 +83,7 @@ public class MongoDBMessageRequester extends AbstractMessageRequester {
 
         logger.debug(String.format("Query %s on bucket %s returned %d results", query, bucket, results.size()));
         return results;
-
     }
+
+
 }

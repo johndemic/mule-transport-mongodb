@@ -15,6 +15,7 @@ import org.mule.util.FileUtils;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
+import java.net.URLEncoder;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -56,6 +57,7 @@ public class MongoDBFunctionalTestCase extends FunctionalTestCase {
                 }
             }
         });
+
     }
 
     public void testCanRequestWithQuery() throws Exception {
@@ -63,12 +65,28 @@ public class MongoDBFunctionalTestCase extends FunctionalTestCase {
         client.send("mongodb://stuff", "{\"name\": \"Johnny Five\"}", null);
         client.send("mongodb://stuff", "{\"name\": \"foo\"}", null);
 
-        List results = (List) client.request("mongodb://stuff?query='{}'", 15000).getPayload();
+        List results = (List) client.request("mongodb://stuff?query=" +
+                URLEncoder.encode("{\"name\":\"foo\"}"), 15000).getPayload();
 
-        assertEquals(2, results.size());
-
-
+        assertEquals(1, results.size());
     }
+
+    public void testCanRequestFilesWithQuery() throws Exception {
+
+        MuleClient client = new MuleClient();
+
+        MuleMessage result = client.send("mongodb://bucket:somefiles", new File("src/test/resources/test.dat"), null);
+        assertNotNull(result);
+        GridFSFile file = (GridFSFile) result.getPayload();
+        assertEquals("test.dat", file.getFilename());
+        assertEquals("b6d81b360a5672d80c27430f39153e2c", file.getMD5());
+
+        List results = (List) client.request("mongodb://bucket:somefiles?query=" +
+                URLEncoder.encode("{\"filename\":\"foo\"}"), 15000).getPayload();
+
+        assertEquals(0, results.size());
+    }
+
 
     public void testCanInsertStringIntoSubCollectionAndRequestResults() throws Exception {
 

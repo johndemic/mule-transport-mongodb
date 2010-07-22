@@ -58,6 +58,18 @@ public class MongoDBFunctionalTestCase extends FunctionalTestCase {
         });
     }
 
+    public void testCanRequestWithQuery() throws Exception {
+        MuleClient client = new MuleClient();
+        client.send("mongodb://stuff", "{\"name\": \"Johnny Five\"}", null);
+        client.send("mongodb://stuff", "{\"name\": \"foo\"}", null);
+
+        List results = (List) client.request("mongodb://stuff?query='{}'", 15000).getPayload();
+
+        assertEquals(2, results.size());
+
+
+    }
+
     public void testCanInsertStringIntoSubCollectionAndRequestResults() throws Exception {
 
         MuleClient client = new MuleClient();

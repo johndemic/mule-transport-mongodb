@@ -4,7 +4,6 @@ import com.mongodb.gridfs.GridFSDBFile;
 import org.mule.api.MuleMessage;
 import org.mule.api.transformer.TransformerException;
 import org.mule.transformer.AbstractMessageAwareTransformer;
-import org.mule.transport.mongodb.MongoDBConnector;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -26,11 +25,7 @@ public class GridFSDBFileToByteArrayTransformer extends AbstractMessageAwareTran
             throw new TransformerException(this, e);
         }
 
-        if (dbFile.getFilename() != null) {
-            logger.debug("Propagating GridFSDBFile name: " + dbFile.getFilename());
-            message.setProperty(MongoDBConnector.PROPERTY_FILENAME, dbFile.getFilename());
-        }
-
+       
         return stream.toByteArray();
     }
 

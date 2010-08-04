@@ -141,7 +141,7 @@
     <xsd:attributeGroup name="propertyAttributes">
     </xsd:attributeGroup>
 
-    <xsd:element name="db-file-to-byte-array" type="dbFileTransformerType"
+    <xsd:element name="db-file-to-byte-array" type="dbFileToByteArrayTransformerType"
                  substitutionGroup="mule:abstract-transformer">
         <xsd:annotation>
             <xsd:documentation>
@@ -150,12 +150,27 @@
         </xsd:annotation>
     </xsd:element>
 
-    <xsd:complexType name="dbFileTransformerType">
+    <xsd:complexType name="dbFileToByteArrayTransformerType">
         <xsd:complexContent>
             <xsd:extension base="mule:abstractTransformerType">
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
 
+    <xsd:element name="db-file-to-input-stream" type="dbFileToInputStreamTransformerType"
+                 substitutionGroup="mule:abstract-transformer">
+        <xsd:annotation>
+            <xsd:documentation>
+                Extract the input stream from a GridFS dbfile
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:complexType name="dbFileToInputStreamTransformerType">
+        <xsd:complexContent>
+            <xsd:extension base="mule:abstractTransformerType">
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
 
 </xsd:schema>

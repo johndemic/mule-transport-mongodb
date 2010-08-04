@@ -19,6 +19,7 @@ import org.mule.config.spring.parsers.specific.endpoint.TransportEndpointDefinit
 import org.mule.endpoint.URIBuilder;
 import org.mule.transport.mongodb.MongoDBConnector;
 import org.mule.transport.mongodb.transformer.GridFSDBFileToByteArrayTransformer;
+import org.mule.transport.mongodb.transformer.GridFSDBFileToInputStreamTransformer;
 
 /**
  * Registers a Bean Definition Parser for handling <code><mongodb:connector></code> elements
@@ -43,6 +44,8 @@ public class MongodbNamespaceHandler extends AbstractMuleNamespaceHandler {
         registerBeanDefinitionParser("db-file-to-byte-array",
                         new TransformerDefinitionParser(GridFSDBFileToByteArrayTransformer.class));
 
+        registerBeanDefinitionParser("db-file-to-input-stream",
+                        new TransformerDefinitionParser(GridFSDBFileToInputStreamTransformer.class));
 
         registerConnectorDefinitionParser(MongoDBConnector.class);
     }

@@ -129,7 +129,7 @@
 
     <xsd:attributeGroup name="outboundAddressAttributes">
         <xsd:attribute name="collection" type="xsd:string"/>
-        <xsd:attribute name="bucket" type="xsd:string"/>        
+        <xsd:attribute name="bucket" type="xsd:string"/>
     </xsd:attributeGroup>
 
     <xsd:attributeGroup name="inboundAddressAttributes">
@@ -140,6 +140,22 @@
 
     <xsd:attributeGroup name="propertyAttributes">
     </xsd:attributeGroup>
+
+    <xsd:element name="db-file-to-byte-array" type="dbFileTransformerType"
+                 substitutionGroup="mule:abstract-transformer">
+        <xsd:annotation>
+            <xsd:documentation>
+                Extract the byte array from a GridFS dbfile
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:complexType name="dbFileTransformerType">
+        <xsd:complexContent>
+            <xsd:extension base="mule:abstractTransformerType">
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
 
 
 </xsd:schema>

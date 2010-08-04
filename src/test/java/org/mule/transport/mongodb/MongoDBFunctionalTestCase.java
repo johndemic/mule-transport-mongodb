@@ -66,7 +66,7 @@ public class MongoDBFunctionalTestCase extends FunctionalTestCase {
         client.send("mongodb://stuff", "{\"name\": \"foo\"}", null);
 
         List results = (List) client.request("mongodb://stuff?query=" +
-                URLEncoder.encode("{\"name\":\"foo\"}"), 15000).getPayload();
+                URLEncoder.encode("{\"name\":\"foo\"}","UTF-8"), 15000).getPayload();
 
         assertEquals(1, results.size());
     }

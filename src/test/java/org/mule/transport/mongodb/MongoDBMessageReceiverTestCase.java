@@ -29,8 +29,8 @@ public class MongoDBMessageReceiverTestCase extends AbstractMessageReceiverTestC
         return new MongoDBMessageReceiver(endpoint.getConnector(), (Service) mockService.proxy(), endpoint);
     }
 
-    public InboundEndpoint getEndpoint() throws Exception {        
-        return newInboundEndpoint(muleContext,"mongodb://stuff");
+    public InboundEndpoint getEndpoint() throws Exception {
+        return newInboundEndpoint(muleContext, "mongodb://stuff");
     }
 
     static InboundEndpoint newInboundEndpoint(MuleContext muleContext, String address) throws Exception {
@@ -42,14 +42,13 @@ public class MongoDBMessageReceiverTestCase extends AbstractMessageReceiverTestC
 
     private static EndpointBuilder newEndpointBuilder(MuleContext muleContext, String address)
             throws Exception {
-        EndpointBuilder builder = new EndpointURIEndpointBuilder(
-                new URIBuilder(address), muleContext);
+        EndpointBuilder builder = new EndpointURIEndpointBuilder(new URIBuilder(address, muleContext));
 
 
         final Mock mockService = new Mock(Service.class);
-		mockService.expectAndReturn("getResponseRouter", null);
-        
-        MongoDBConnector connector = new MongoDBConnector();
+        mockService.expectAndReturn("getResponseRouter", null);
+
+        MongoDBConnector connector = new MongoDBConnector(muleContext);
 
         builder.setConnector(connector);
         return builder;

@@ -20,7 +20,7 @@ public class MongoDBConnectorTestCase extends AbstractConnectorTestCase
     public Connector createConnector() throws Exception
     {
 
-        MongoDBConnector c = new MongoDBConnector();
+        MongoDBConnector c = new MongoDBConnector(muleContext);
         c.setName("Test");
         c.setDatabase("asdas");
         return c;

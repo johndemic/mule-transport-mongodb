@@ -1,1 +1,1 @@
-http\://www.mulesource.org/schema/mule/mongodb/2.2=org.mule.transport.mongodb.config.MongodbNamespaceHandler
+http\://www.mulesoft.org/schema/mule/mongodb=org.mule.transport.mongodb.config.MongodbNamespaceHandler

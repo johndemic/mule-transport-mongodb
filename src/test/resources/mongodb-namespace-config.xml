@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<mule xmlns="http://www.mulesource.org/schema/mule/core/2.2"
+<mule xmlns="http://www.mulesoft.org/schema/mule/core"
       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-      xmlns:mongodb="http://www.mulesource.org/schema/mule/mongodb/2.2"
-      xmlns:vm="http://www.mulesource.org/schema/mule/vm/2.2"
+      xmlns:mongodb="http://www.mulesoft.org/schema/mule/mongodb"
+      xmlns:vm="http://www.mulesoft.org/schema/mule/vm"
       xsi:schemaLocation="
-       http://www.mulesource.org/schema/mule/core/2.2 http://www.mulesource.org/schema/mule/core/2.2/mule.xsd
-       http://www.mulesource.org/schema/mule/mongodb/2.2 http://www.mulesource.org/schema/mule/mongodb/2.2/mule-mongodb.xsd
-       http://www.mulesource.org/schema/mule/vm/2.2 http://www.mulesource.org/schema/mule/vm/2.2/mule-vm.xsd
+       http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/3.0/mule.xsd
+       http://www.mulesoft.org/schema/mule/mongodb http://www.mulesoft.org/schema/mule/mongodb/3.0/mule-mongodb.xsd
+       http://www.mulesoft.org/schema/mule/vm http://www.mulesoft.org/schema/mule/vm/3.0/mule-vm.xsd
        ">
 
     <mongodb:connector name="mongodbConnector"
@@ -14,18 +14,19 @@
                        username="user"
                        password="pass"
                        hostname="localhost"
-                       port="1234"
+                       port="27017"
                        pollingFrequency="5000">
     </mongodb:connector>
 
     <model>
         <service name="MongoDB Test Input Service">
             <inbound>
-                <mongodb:inbound-endpoint collection="stuff" query="{ 'field' : { $gt: value1, $lt: value2 } }"/>                    
+                <mongodb:inbound-endpoint collection="stuff" query="{ 'field' : { $gt: value1, $lt: value2 } }"
+                                          exchange-pattern="one-way"/>
             </inbound>
             <outbound>
                 <pass-through-router>
-                    <mongodb:outbound-endpoint collection="stuff"/>
+                    <mongodb:outbound-endpoint collection="stuff" exchange-pattern="one-way"/>
                 </pass-through-router>
             </outbound>
         </service>

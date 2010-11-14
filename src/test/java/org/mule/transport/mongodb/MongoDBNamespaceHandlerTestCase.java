@@ -25,7 +25,7 @@ public class MongoDBNamespaceHandlerTestCase extends FunctionalTestCase {
         assertTrue(c.isConnected());
         assertTrue(c.isStarted());
         assertEquals(c.getHostname(), "localhost");
-        assertEquals(c.getPort(), "1234");
+        assertEquals(c.getPort(), "27017");
         assertEquals(c.getDatabase(), "myDB");
         assertEquals(c.getUsername(), "user");
         assertEquals(c.getPassword(), "pass");

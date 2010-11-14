@@ -1,12 +1,12 @@
 package org.mule.transport.mongodb;
 
 import com.mongodb.BasicDBObject;
+import com.mongodb.DB;
 import com.mongodb.DBCursor;
 import com.mongodb.DBObject;
 import com.mongodb.gridfs.GridFS;
 import com.mongodb.gridfs.GridFSDBFile;
 import org.codehaus.jackson.map.ObjectMapper;
-import org.mule.DefaultMuleMessage;
 import org.mule.api.MuleMessage;
 import org.mule.api.endpoint.InboundEndpoint;
 import org.mule.transport.AbstractMessageRequester;
@@ -16,9 +16,10 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-public class MongoDBMessageRequester extends AbstractMessageRequester {
+public class MongoDBMessageRequester extends AbstractMessageRequester  {
 
     ObjectMapper mapper;
+
 
     public MongoDBMessageRequester(InboundEndpoint endpoint) {
         super(endpoint);
@@ -35,10 +36,10 @@ public class MongoDBMessageRequester extends AbstractMessageRequester {
 
         if (!destination.startsWith("bucket:")) {
             logger.debug("Requesting  collection: " + destination);
-            return new DefaultMuleMessage(doRequestForCollection(destination, query));
+            return createMuleMessage(doRequestForCollection(destination, query));
         } else {
             logger.debug("Requesting bucket: " + destination);
-            return new DefaultMuleMessage(doRequestForBucket(destination.split("bucket:")[1], query));
+            return createMuleMessage(doRequestForBucket(destination.split("bucket:")[1], query));
         }
     }
 
@@ -48,25 +49,36 @@ public class MongoDBMessageRequester extends AbstractMessageRequester {
 
         logger.debug("Requesting all documents in collection: " + collection);
 
+        MongoDBConnector mongoConnector = (MongoDBConnector) connector;
+        DB db = mongoConnector.getMongo().getDB(mongoConnector.getDatabase());
+
         DBCursor cursor;
+
+        db.requestStart();
 
         if (StringUtils.isNotBlank(queryString)) {
             BasicDBObject query = mapper.readValue(queryString, BasicDBObject.class);
-            cursor = ((MongoDBConnector) connector).getDb().getCollection(collection).find(query);
+            cursor = db.getCollection(collection).find(query);
         } else {
-            cursor = ((MongoDBConnector) connector).getDb().getCollection(collection).find();
-
+            cursor = db.getCollection(collection).find();
         }
 
         while (cursor.hasNext()) {
             result.add(cursor.next());
         }
 
+        db.requestDone();
+
+
         return result;
     }
 
     Object doRequestForBucket(String bucket, String queryString) throws Exception {
-        GridFS gridFS = new GridFS(((MongoDBConnector) connector).getDb(), bucket);
+
+        MongoDBConnector mongoConnector = (MongoDBConnector) connector;
+        DB db = mongoConnector.getMongo().getDB(mongoConnector.getDatabase());
+
+        GridFS gridFS = new GridFS(db, bucket);
 
         if (StringUtils.isBlank(queryString))
             queryString = "{}";

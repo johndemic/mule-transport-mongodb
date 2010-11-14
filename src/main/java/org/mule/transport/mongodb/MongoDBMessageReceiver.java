@@ -11,18 +11,17 @@
 package org.mule.transport.mongodb;
 
 import com.mongodb.BasicDBObject;
+import com.mongodb.DB;
 import com.mongodb.DBCursor;
 import com.mongodb.DBObject;
 import com.mongodb.gridfs.GridFS;
 import com.mongodb.gridfs.GridFSDBFile;
 import org.codehaus.jackson.map.ObjectMapper;
-import org.mule.DefaultMuleMessage;
 import org.mule.api.MuleException;
 import org.mule.api.endpoint.InboundEndpoint;
 import org.mule.api.lifecycle.CreateException;
 import org.mule.api.service.Service;
 import org.mule.api.transport.Connector;
-import org.mule.api.transport.MessageAdapter;
 import org.mule.transport.AbstractPollingMessageReceiver;
 import org.mule.transport.ConnectException;
 
@@ -35,6 +34,7 @@ import java.util.List;
 public class MongoDBMessageReceiver extends AbstractPollingMessageReceiver {
 
     ObjectMapper mapper;
+
 
     public MongoDBMessageReceiver(Connector connector, Service service,
                                   InboundEndpoint endpoint)
@@ -68,27 +68,41 @@ public class MongoDBMessageReceiver extends AbstractPollingMessageReceiver {
 
         BasicDBObject query = mapper.readValue((String) endpoint.getProperty("query"), BasicDBObject.class);
 
-        DBCursor cursor = ((MongoDBConnector) connector).getDb().getCollection(collection).find(query);
+        MongoDBConnector mongoConnector = (MongoDBConnector) connector;
+
+        DB db = mongoConnector.getMongo().getDB(mongoConnector.getDatabase());
+
+        db.requestStart();
+
+        DBCursor cursor = db.getCollection(collection).find(query);
 
         while (cursor.hasNext()) {
             result.add(cursor.next());
         }
 
-        MessageAdapter adapter = connector.getMessageAdapter(result);
-        routeMessage(new DefaultMuleMessage(adapter), endpoint.isSynchronous());
+        db.requestDone();
+
+        routeMessage(createMuleMessage(result));
     }
 
     void pollBucket(String bucket) throws Exception {
 
-        GridFS gridFS = new GridFS(((MongoDBConnector) connector).getDb(), bucket);
+        MongoDBConnector mongoConnector = (MongoDBConnector) connector;
+
+        DB db = mongoConnector.getMongo().getDB(mongoConnector.getDatabase());
+
+        db.requestStart();
+
+        GridFS gridFS = new GridFS(db, bucket);
         BasicDBObject query = mapper.readValue((String) endpoint.getProperty("query"), BasicDBObject.class);
 
-        List<GridFSDBFile> results =  gridFS.find(query);
+        List<GridFSDBFile> results = gridFS.find(query);
 
         logger.debug(String.format("Query %s on bucket %s returned %d results", query, bucket, results.size()));
 
-        MessageAdapter adapter = connector.getMessageAdapter(results);
-        routeMessage(new DefaultMuleMessage(adapter), endpoint.isSynchronous());
+        db.requestDone();
+        
+        routeMessage(createMuleMessage(results));
     }
 
 
@@ -97,5 +111,7 @@ public class MongoDBMessageReceiver extends AbstractPollingMessageReceiver {
         super.setFrequency(((MongoDBConnector) connector).pollingFrequency);
         super.doStart();
     }
+
+
 }
 

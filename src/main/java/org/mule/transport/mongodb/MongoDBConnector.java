@@ -10,11 +10,11 @@
 
 package org.mule.transport.mongodb;
 
-import com.mongodb.DB;
 import com.mongodb.Mongo;
-import org.mule.transport.AbstractConnector;
+import org.mule.api.MuleContext;
 import org.mule.api.MuleException;
 import org.mule.api.lifecycle.InitialisationException;
+import org.mule.transport.AbstractConnector;
 
 /**
  * <code>MongoDBConnector</code>
@@ -32,7 +32,10 @@ public class MongoDBConnector extends AbstractConnector
     Long pollingFrequency = 1000L;
     
     Mongo mongo;
-    DB db;
+
+    public MongoDBConnector(MuleContext context) {
+        super(context);
+    }
 
 
     /* This constant defines the main transport protocol identifier */
@@ -46,12 +49,10 @@ public class MongoDBConnector extends AbstractConnector
     public void doConnect() throws Exception
     {
         mongo = new Mongo(hostname, Integer.parseInt(port));
-        db = mongo.getDB(database);
     }
 
     public void doDisconnect() throws Exception
     {
-        db.requestDone();
     }
 
    
@@ -112,11 +113,9 @@ public class MongoDBConnector extends AbstractConnector
         this.password = password;
     }
 
-    public DB getDb() {
-        return db;
+    public Mongo getMongo() {
+        return mongo;
     }
-
-   
 
     public void setPollingFrequency(String pollingFrequency) {
         this.pollingFrequency = Long.parseLong(pollingFrequency);

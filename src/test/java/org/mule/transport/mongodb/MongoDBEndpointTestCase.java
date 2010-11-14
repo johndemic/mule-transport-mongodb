@@ -19,7 +19,7 @@ public class MongoDBEndpointTestCase extends AbstractMuleTestCase
 
     public void testValidEndpointURI() throws Exception
     {
-        EndpointURI url = new MuleEndpointURI("mongodb://stuff");
+        EndpointURI url = new MuleEndpointURI("mongodb://stuff", muleContext);
         url.initialise();
         assertEquals("mongodb", url.getScheme());
         assertEquals("mongodb://stuff", url.getAddress());       

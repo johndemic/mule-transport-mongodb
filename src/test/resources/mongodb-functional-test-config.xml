@@ -1,14 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<mule xmlns="http://www.mulesource.org/schema/mule/core/2.2"
+<mule xmlns="http://www.mulesoft.org/schema/mule/core"
       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-      xmlns:mongodb="http://www.mulesource.org/schema/mule/mongodb/2.2"
-      xmlns:vm="http://www.mulesource.org/schema/mule/vm/2.2"
+      xmlns:mongodb="http://www.mulesoft.org/schema/mule/mongodb"
+      xmlns:vm="http://www.mulesoft.org/schema/mule/vm"
       xsi:schemaLocation="
-       http://www.mulesource.org/schema/mule/core/2.2 http://www.mulesource.org/schema/mule/core/2.2/mule.xsd
-       http://www.mulesource.org/schema/mule/mongodb/2.2 http://www.mulesource.org/schema/mule/mongodb/2.2/mule-mongodb.xsd
-       http://www.mulesource.org/schema/mule/vm/2.2 http://www.mulesource.org/schema/mule/vm/2.2/mule-vm.xsd
+       http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/3.0/mule.xsd
+       http://www.mulesoft.org/schema/mule/mongodb http://www.mulesoft.org/schema/mule/mongodb/3.0/mule-mongodb.xsd
+       http://www.mulesoft.org/schema/mule/vm http://www.mulesoft.org/schema/mule/vm/3.0/mule-vm.xsd
        ">
-
 
     <mongodb:connector name="mongodbConnector"
                        database="mule-mongodb"
@@ -16,11 +15,10 @@
                        password="pass"
                        pollingFrequency="5000"
                        hostname="localhost"
-
             >
     </mongodb:connector>
 
-    <vm:connector name="vmConnector" queueEvents="true"/>
+    <vm:connector name="vmConnector"/>
 
     <notifications dynamic="true">
         <notification event="ENDPOINT-MESSAGE"/>
@@ -30,43 +28,45 @@
 
         <service name="MongoDB GridFS Output Service">
             <inbound>
-                <vm:inbound-endpoint path="gridfs.in"/>
+                <vm:inbound-endpoint path="gridfs.in" exchange-pattern="one-way"/>
             </inbound>
             <outbound>
                 <pass-through-router>
-                    <mongodb:outbound-endpoint bucket="gridstuff"/>
+                    <mongodb:outbound-endpoint bucket="gridstuff" exchange-pattern="one-way"/>
                 </pass-through-router>
             </outbound>
         </service>
+
         <service name="MongoDB Test Input Service">
             <inbound>
-                <vm:inbound-endpoint path="input"/>
+                <vm:inbound-endpoint path="input" exchange-pattern="one-way"/>
             </inbound>
             <outbound>
                 <pass-through-router>
-                    <mongodb:outbound-endpoint collection="stuff"/>
+                    <mongodb:outbound-endpoint collection="stuff" exchange-pattern="one-way"/>
                 </pass-through-router>
             </outbound>
         </service>
 
         <service name="MongoDB Test Input Service With Subcollection">
             <inbound>
-                <vm:inbound-endpoint path="input.sub"/>
+                <vm:inbound-endpoint path="input.sub" exchange-pattern="one-way"/>
             </inbound>
             <outbound>
                 <pass-through-router>
-                    <mongodb:outbound-endpoint collection="stuff.sub"/>
+                    <mongodb:outbound-endpoint collection="stuff.sub" exchange-pattern="one-way"/>
                 </pass-through-router>
             </outbound>
         </service>
 
-         <service name="MongoDB Test Input Service With Expression">
+        <service name="MongoDB Test Input Service With Expression">
             <inbound>
-                <vm:inbound-endpoint path="input.sub.expr"/>
+                <vm:inbound-endpoint path="input.sub.expr" exchange-pattern="one-way"/>
             </inbound>
             <outbound>
                 <pass-through-router>
-                    <mongodb:outbound-endpoint collection="stuff.sub.#[header:collectionHeader]"/>
+                    <mongodb:outbound-endpoint collection="stuff.sub.#[header:collectionHeader]"
+                                               exchange-pattern="one-way"/>
                 </pass-through-router>
             </outbound>
         </service>
@@ -74,22 +74,24 @@
 
         <service name="MongoDB Polling Service">
             <inbound>
-                <mongodb:inbound-endpoint collection="stuff" query='{ "name": "Johnny Five" }'/>
+                <mongodb:inbound-endpoint collection="stuff" query='{ "name": "Johnny Five" }'
+                            exchange-pattern="one-way"/>
             </inbound>
             <outbound>
                 <pass-through-router>
-                    <vm:outbound-endpoint path="output"/>
+                    <vm:outbound-endpoint path="output" exchange-pattern="one-way"/>
                 </pass-through-router>
             </outbound>
         </service>
 
-         <service name="MongoDB GridFS Polling Service">
+        <service name="MongoDB GridFS Polling Service">
             <inbound>
-                <mongodb:inbound-endpoint bucket="somefiles" query='{ "filename": "test.dat" }'/>
+                <mongodb:inbound-endpoint bucket="somefiles" query='{ "filename": "test.dat" }'
+                        exchange-pattern="one-way"/>
             </inbound>
             <outbound>
                 <pass-through-router>
-                    <vm:outbound-endpoint path="output.somefiles"/>
+                    <vm:outbound-endpoint path="output.somefiles" exchange-pattern="one-way"/>
                 </pass-through-router>
             </outbound>
         </service>

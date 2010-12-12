@@ -64,7 +64,6 @@ public class MongoDBMessageDispatcher extends AbstractMessageDispatcher {
 
         String destination = evaluatedEndpoint.split("://")[1];
 
-
         if (!destination.startsWith("bucket:")) {
             logger.debug("Dispatching to collection: " + destination);
             doDispatchToCollection(event, destination);
@@ -103,7 +102,8 @@ public class MongoDBMessageDispatcher extends AbstractMessageDispatcher {
             }
         }
 
-
+        responseMessage.setOutboundProperty(MongoDBConnector.PROPERTY_OBJECT_ID,
+                event.getMessage().<Object>getOutboundProperty(MongoDBConnector.PROPERTY_OBJECT_ID));
         return responseMessage;
     }
 
@@ -122,7 +122,14 @@ public class MongoDBMessageDispatcher extends AbstractMessageDispatcher {
             return payload;
         } else {
             BasicDBObject result = insertOrUpdate(getObject(payload), db, collection);
+            ObjectId id = (ObjectId) result.get("_id");
+            if (id == null) {
+                logger.warn("_id is null, cannot set " + MongoDBConnector.PROPERTY_OBJECT_ID);
+            } else {
+                event.getMessage().setOutboundProperty(MongoDBConnector.PROPERTY_OBJECT_ID, id.toStringMongod());
+            }
             db.requestDone();
+
             return result;
         }
     }
@@ -219,6 +226,9 @@ public class MongoDBMessageDispatcher extends AbstractMessageDispatcher {
         logger.debug(String.format("GridFS file %s saved in %s seconds", file.getId(), elapsed / 1000.0));
 
         file.validate();
+
+        ObjectId id = (ObjectId) file.getId();
+        event.getMessage().setOutboundProperty(MongoDBConnector.PROPERTY_OBJECT_ID, id.toStringMongod());
 
         db.requestDone();
 

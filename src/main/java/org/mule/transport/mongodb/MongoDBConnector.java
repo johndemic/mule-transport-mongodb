@@ -23,6 +23,8 @@ public class MongoDBConnector extends AbstractConnector
 {
 
     public static final String PROPERTY_FILENAME = "filename";
+    public static final String PROPERTY_OBJECT_ID = "objectId";
+
 
     String database;
     String hostname = "localhost";

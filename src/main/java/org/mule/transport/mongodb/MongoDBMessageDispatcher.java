@@ -163,46 +163,73 @@ public class MongoDBMessageDispatcher extends AbstractMessageDispatcher {
 
             switch (MongoDBDispatchMode.valueOf(mode)) {
                 case INSERT:
-                    result = insert(getObject(object), db, collection);
+                    result = insert(getObject(object), db, collection, message);
                     break;
                 case UPDATE:
-                    result = update(getObject(object), db, collection);
+                    result = update(getObject(object), db, collection, message);
                     break;
                 case DELETE:
-                    result = delete(getObject(object), db, collection);
+                    result = delete(getObject(object), db, collection, message);
                     break;
                 default:
                     throw new MongoDBException("No dispatch mode associated with: " + mode);
             }
         } else {
-            result = insert(getObject(object), db, collection);
+            result = insert(getObject(object), db, collection, message);
         }
 
         return result;
     }
 
-    protected BasicDBObject insert(BasicDBObject object, DB db, String collection) {
+    protected BasicDBObject insert(BasicDBObject object, DB db, String collection, MuleMessage message) {
         logger.debug(String.format("Inserting to collection %s in DB %s: %s", collection, db, object));
-        db.getCollection(collection).insert(object);
+        WriteConcern writeConcern = WriteConcernFactory.getWriteConcern(message);
+        if (writeConcern == null) {
+            db.getCollection(collection).insert(object);
+        } else {
+            logger.debug("Using WriteConcern value " + writeConcern);
+            db.getCollection(collection).insert(object, writeConcern);
+        }
         return object;
     }
 
-    protected BasicDBObject update(BasicDBObject object, DB db, String collection) {
+    protected BasicDBObject update(BasicDBObject object, DB db, String collection, MuleMessage message) {
         logger.debug(String.format("Updating collection %s in DB %s: %s", collection, db, object));
 
         DBObject objectToUpdate = db.getCollection(collection).findOne(
                 new BasicDBObject("_id", new ObjectId(object.get("_id").toString())));
         if (objectToUpdate != null) {
-            db.getCollection(collection).update(objectToUpdate, object);
+
+            WriteConcern writeConcern = WriteConcernFactory.getWriteConcern(message);
+
+            if (writeConcern == null) {
+                db.getCollection(collection).update(objectToUpdate, object);
+            } else {
+                // ToDo Add property support for 'upsert' and 'multi' parameters
+                logger.warn(
+                        "You have specified a WriteConcern for an update operation. " +
+                                " Note that the 'upsert' and 'multi' parameters for the update are currently false. " +
+                                " This will be fixed in a future release");
+                logger.debug("Using WriteConcern value " + writeConcern);
+                db.getCollection(collection).update(objectToUpdate, object, false, false, writeConcern);
+            }
         } else {
             throw new MongoException("Could not find existing object with _id: " + object.get("_id").toString());
         }
         return object;
     }
 
-    protected BasicDBObject delete(BasicDBObject object, DB db, String collection) {
+    protected BasicDBObject delete(BasicDBObject object, DB db, String collection, MuleMessage message) {
         logger.debug(String.format("Deleting from collection %s in DB %s: %s", collection, db, object));
-        db.getCollection(collection).remove(object);
+
+        WriteConcern writeConcern = WriteConcernFactory.getWriteConcern(message);
+
+        if (writeConcern == null) {
+            db.getCollection(collection).remove(object);
+        } else {
+            logger.debug("Using WriteConcern value " + writeConcern);
+            db.getCollection(collection).remove(object, writeConcern);
+        }
         return object;
     }
 

@@ -24,7 +24,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
 
 @SuppressWarnings({"unchecked"})
 public class MongoDBFunctionalTestCase extends FunctionalTestCase {
@@ -68,8 +67,11 @@ public class MongoDBFunctionalTestCase extends FunctionalTestCase {
 
         MuleClient client = new MuleClient(muleContext);
         String payload = "{\"name\": \"Johnny Five\"}";
-        client.send("vm://input", payload, null);
-        assertTrue(latch.await(5, TimeUnit.SECONDS));
+
+        Map properties = new HashMap();
+        properties.put(MongoDBConnector.MULE_MONGO_WRITE_CONCERN, MongoDBWriteConcern.NORMAL.toString());
+
+        client.send("mongodb://stuff", payload, properties);
         List results = (List) client.request("mongodb://stuff", 15000).getPayload();
         assertNotNull(results);
 
@@ -80,14 +82,13 @@ public class MongoDBFunctionalTestCase extends FunctionalTestCase {
         assertNotNull(id);
 
         String newPayload = "{\"_id\": " + '"' + id + '"' + ",\"age\": \"1\",\"name\": \"John the Fifth\"}";
-        latch = new CountDownLatch(2);
 
-        Map properties = new HashMap();
+        properties = new HashMap();
         properties.put(MongoDBConnector.MULE_MONGO_DISPATCH_MODE, MongoDBDispatchMode.UPDATE.toString());
+        properties.put(MongoDBConnector.MULE_MONGO_WRITE_CONCERN, MongoDBWriteConcern.NORMAL.toString());
 
         client.send("mongodb://stuff", newPayload, properties);
 
-        assertTrue(latch.await(5, TimeUnit.SECONDS));
         results = (List) client.request("mongodb://stuff", 15000).getPayload();
         assertNotNull(results);
         result = (Map) results.get(0);
@@ -100,10 +101,14 @@ public class MongoDBFunctionalTestCase extends FunctionalTestCase {
 
     public void testCanDeleteStringAndRequestResults() throws Exception {
 
+        Map properties = new HashMap();
+        properties.put(MongoDBConnector.MULE_MONGO_WRITE_CONCERN, MongoDBWriteConcern.NORMAL.toString());
+
         MuleClient client = new MuleClient(muleContext);
         String payload = "{\"name\": \"Foo\"}";
-        client.send("mongodb://stuff", payload, null);
-        assertTrue(latch.await(5, TimeUnit.SECONDS));
+        client.send("mongodb://stuff", payload, properties);
+
+
         List results = (List) client.request("mongodb://stuff", 15000).getPayload();
         assertNotNull(results);
 
@@ -114,14 +119,13 @@ public class MongoDBFunctionalTestCase extends FunctionalTestCase {
         assertNotNull(id);
 
         String newPayload = "{\"name\": \"Foo\"}";
-        latch = new CountDownLatch(2);
 
-        Map properties = new HashMap();
+        properties = new HashMap();
         properties.put(MongoDBConnector.MULE_MONGO_DISPATCH_MODE, MongoDBDispatchMode.DELETE.toString());
+        properties.put(MongoDBConnector.MULE_MONGO_WRITE_CONCERN, MongoDBWriteConcern.NORMAL.toString());
 
         client.send("mongodb://stuff", newPayload, properties);
 
-        assertTrue(latch.await(5, TimeUnit.SECONDS));
         results = (List) client.request("mongodb://stuff", 15000).getPayload();
         assertNotNull(results);
         assertEquals(0, results.size());
@@ -130,11 +134,12 @@ public class MongoDBFunctionalTestCase extends FunctionalTestCase {
 
     public void testCanInsertStringAndRequestResults() throws Exception {
 
+        Map properties = new HashMap();
+        properties.put(MongoDBConnector.MULE_MONGO_WRITE_CONCERN, MongoDBWriteConcern.NORMAL.toString());
+
         MuleClient client = new MuleClient(muleContext);
         String payload = "{\"name\": \"Johnny Five\"}";
-        MuleMessage result = client.send("vm://input", payload, null);
-
-        assertTrue(latch.await(5, TimeUnit.SECONDS));
+        client.send("mongodb://stuff", payload, properties);
         List results = (List) client.request("mongodb://stuff", 15000).getPayload();
         assertNotNull(results);
         Map resultMap = (Map) results.get(0);
@@ -143,17 +148,18 @@ public class MongoDBFunctionalTestCase extends FunctionalTestCase {
 
     public void testCanInsertStringIntoSubCollectionAndRequestResults() throws Exception {
 
+        Map properties = new HashMap();
+        properties.put(MongoDBConnector.MULE_MONGO_WRITE_CONCERN, MongoDBWriteConcern.NORMAL.toString());
+
         MuleClient client = new MuleClient(muleContext);
         String payload = "{\"name\": \"Johnny Five Sub\"}";
-        MuleMessage response = client.send("mongodb://stuff.sub", payload, null);
+        MuleMessage response = client.send("mongodb://stuff.sub", payload, properties);
 
         assertNotNull(response.<Object>getOutboundProperty("objectId"));
-
         assertNotNull(response);
+
         Map responseMap = (Map) response.getPayload();
         assertNotNull(responseMap.get("_id"));
-//        assertNotNull(responseMap.get("_ns"));
-        assertTrue(latch.await(5, TimeUnit.SECONDS));
 
         List results = (List) client.request("mongodb://stuff.sub", 15000).getPayload();
         assertNotNull(results);
@@ -168,8 +174,10 @@ public class MongoDBFunctionalTestCase extends FunctionalTestCase {
                 "{\"_id\": " + '"' + new ObjectId().toStringMongod() + '"' + ",\"age\": \"1\",\"name\": \"John the Fifth\"}";
 
 
-        client.send("vm://input", payload, null);
-        assertTrue(latch.await(5, TimeUnit.SECONDS));
+        Map properties = new HashMap();
+        properties.put(MongoDBConnector.MULE_MONGO_WRITE_CONCERN, MongoDBWriteConcern.NORMAL.toString());
+
+        client.send("mongodb://stuff", payload, properties);
         List results = (List) client.request("mongodb://stuff", 15000).getPayload();
         assertEquals(1, results.size());
     }
@@ -230,8 +238,10 @@ public class MongoDBFunctionalTestCase extends FunctionalTestCase {
             maps.add(payload);
         }
 
-        client.send("mongodb://stuff.map", maps, null);
-        assertTrue(latch.await(5, TimeUnit.SECONDS));
+        Map properties = new HashMap();
+        properties.put(MongoDBConnector.MULE_MONGO_WRITE_CONCERN, MongoDBWriteConcern.NORMAL.toString());
+
+        client.send("mongodb://stuff.map", maps, properties);
         List results = (List) client.request("mongodb://stuff.map", 15000).getPayload();
 
         assertNotNull(results);
@@ -272,7 +282,6 @@ public class MongoDBFunctionalTestCase extends FunctionalTestCase {
 
         while (results == null || (results.size() == 0 && count < 5)) {
             results = (List) client.request("vm://output.somefiles", 15000).getPayload();
-            Thread.sleep(5000);
             count++;
         }
         assertNotNull(results);
@@ -315,17 +324,20 @@ public class MongoDBFunctionalTestCase extends FunctionalTestCase {
 
         MuleClient client = new MuleClient(muleContext);
 
+
         Map<String, String> payload = new HashMap<String, String>();
         payload.put("name", "Johnny Five");
-        client.send("vm://input", payload, null);
-        assertTrue(latch.await(5, TimeUnit.SECONDS));
+
+        Map properties = new HashMap();
+        properties.put(MongoDBConnector.MULE_MONGO_WRITE_CONCERN, MongoDBWriteConcern.NORMAL.toString());
+
+        client.send("mongodb://stuff", payload, properties);
 
         List results = null;
         int count = 0;
 
         while (results == null || (results.size() == 0 && count < 5)) {
             results = (List) client.request("vm://output", 15000).getPayload();
-            Thread.sleep(5000);
             count++;
         }
 
@@ -402,22 +414,15 @@ public class MongoDBFunctionalTestCase extends FunctionalTestCase {
         assertTrue(exceptionThrown);
     }
 
-
-    public void testCanDispatch() throws Exception {
-        MuleClient client = new MuleClient(muleContext);
-        String payload = "{\"name\": \"Johnny Fivethousand\"}";
-        client.dispatch("mongodb://stuff", payload, null);
-        assertTrue(latch.await(5, TimeUnit.SECONDS));
-    }
-
-
     public void testCanInsertMapAndRequestData() throws Exception {
+
+        Map properties = new HashMap();
+        properties.put(MongoDBConnector.MULE_MONGO_WRITE_CONCERN, MongoDBWriteConcern.NORMAL.toString());
 
         MuleClient client = new MuleClient(muleContext);
         Map<String, String> payload = new HashMap<String, String>();
         payload.put("name", "Johnny Five");
-        client.send("mongodb://stuff.map", payload, null);
-        assertTrue(latch.await(5, TimeUnit.SECONDS));
+        client.send("mongodb://stuff.map", payload, properties);
         List results = (List) client.request("mongodb://stuff.map", 15000).getPayload();
 
         assertNotNull(results);

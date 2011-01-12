@@ -31,6 +31,7 @@ public class MongoDBConnector extends AbstractConnector {
     public static final String PROPERTY_OBJECT_ID = "objectId";
 
     public static final String MULE_MONGO_DISPATCH_MODE = "dispatch_mode";
+    public static final String MULE_MONGO_WRITE_CONCERN = "write_concern";
 
     String database;
     String hostname = "localhost";

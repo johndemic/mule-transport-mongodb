@@ -196,6 +196,19 @@ public class MongoDBMessageDispatcher extends AbstractMessageDispatcher {
     protected BasicDBObject update(BasicDBObject object, DB db, String collection, MuleMessage message) {
         logger.debug(String.format("Updating collection %s in DB %s: %s", collection, db, object));
 
+        boolean upsert = false;
+        boolean multi = false;
+
+        if (message.getOutboundPropertyNames().contains(MongoDBConnector.MULE_MONGO_UPDATE_UPSERT)) {
+            if (message.getOutboundProperty(MongoDBConnector.MULE_MONGO_UPDATE_UPSERT).equals("true"))
+                upsert = true;
+        }
+
+        if (message.getOutboundPropertyNames().contains(MongoDBConnector.MULE_MONGO_UPDATE_MULTI)) {
+            if (message.getOutboundProperty(MongoDBConnector.MULE_MONGO_UPDATE_MULTI).equals("true"))
+                multi = true;
+        }
+
         DBObject objectToUpdate = db.getCollection(collection).findOne(
                 new BasicDBObject("_id", new ObjectId(object.get("_id").toString())));
         if (objectToUpdate != null) {
@@ -203,15 +216,10 @@ public class MongoDBMessageDispatcher extends AbstractMessageDispatcher {
             WriteConcern writeConcern = WriteConcernFactory.getWriteConcern(message);
 
             if (writeConcern == null) {
-                db.getCollection(collection).update(objectToUpdate, object);
+                db.getCollection(collection).update(objectToUpdate, object, upsert, multi);
             } else {
-                // ToDo Add property support for 'upsert' and 'multi' parameters
-                logger.warn(
-                        "You have specified a WriteConcern for an update operation. " +
-                                " Note that the 'upsert' and 'multi' parameters for the update are currently false. " +
-                                " This will be fixed in a future release");
                 logger.debug("Using WriteConcern value " + writeConcern);
-                db.getCollection(collection).update(objectToUpdate, object, false, false, writeConcern);
+                db.getCollection(collection).update(objectToUpdate, object, upsert, multi, writeConcern);
             }
         } else {
             throw new MongoException("Could not find existing object with _id: " + object.get("_id").toString());

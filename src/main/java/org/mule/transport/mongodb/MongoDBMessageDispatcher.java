@@ -10,9 +10,7 @@
 
 package org.mule.transport.mongodb;
 
-import com.mongodb.BasicDBObject;
-import com.mongodb.DB;
-import com.mongodb.DBObject;
+import com.mongodb.*;
 import com.mongodb.gridfs.GridFS;
 import com.mongodb.gridfs.GridFSInputFile;
 import org.bson.types.ObjectId;
@@ -38,7 +36,6 @@ public class MongoDBMessageDispatcher extends AbstractMessageDispatcher {
 
     ObjectMapper mapper;
 
-
     public MongoDBMessageDispatcher(OutboundEndpoint endpoint) {
         super(endpoint);
         connector = (MongoDBConnector) endpoint.getConnector();
@@ -51,7 +48,6 @@ public class MongoDBMessageDispatcher extends AbstractMessageDispatcher {
     public void doDisconnect() throws Exception {
 
     }
-
 
     public void doDispatch(MuleEvent event) throws Exception {
 
@@ -102,8 +98,10 @@ public class MongoDBMessageDispatcher extends AbstractMessageDispatcher {
             }
         }
 
-        responseMessage.setOutboundProperty(MongoDBConnector.PROPERTY_OBJECT_ID,
-                event.getMessage().<Object>getOutboundProperty(MongoDBConnector.PROPERTY_OBJECT_ID));
+        if (event.getMessage().getOutboundPropertyNames().contains(MongoDBConnector.PROPERTY_OBJECT_ID)) {
+            responseMessage.setOutboundProperty(MongoDBConnector.PROPERTY_OBJECT_ID,
+                    event.getMessage().<Object>getOutboundProperty(MongoDBConnector.PROPERTY_OBJECT_ID));
+        }
         return responseMessage;
     }
 
@@ -115,18 +113,26 @@ public class MongoDBMessageDispatcher extends AbstractMessageDispatcher {
 
         if (payload instanceof List) {
             List list = (List) payload;
+
+            MuleMessage message = event.getMessage();
+
             for (Object o : list) {
-                insertOrUpdate(getObject(o), db, collection);
+                performOperation(message, o, db, collection);
             }
+
             db.requestDone();
             return payload;
         } else {
-            BasicDBObject result = insertOrUpdate(getObject(payload), db, collection);
-            ObjectId id = (ObjectId) result.get("_id");
+            MuleMessage message = event.getMessage();
+
+            BasicDBObject result = performOperation(message, message.getPayload(), db, collection);
+
+            Object id = getObjectIdAsString(result.get("_id"));
+
             if (id == null) {
                 logger.warn("_id is null, cannot set " + MongoDBConnector.PROPERTY_OBJECT_ID);
             } else {
-                event.getMessage().setOutboundProperty(MongoDBConnector.PROPERTY_OBJECT_ID, id.toStringMongod());
+                event.getMessage().setOutboundProperty(MongoDBConnector.PROPERTY_OBJECT_ID, id);
             }
             db.requestDone();
 
@@ -134,25 +140,72 @@ public class MongoDBMessageDispatcher extends AbstractMessageDispatcher {
         }
     }
 
-    protected BasicDBObject insertOrUpdate(BasicDBObject object, DB db, String collection) {
-        if (object.containsField("_id")) {
-            DBObject objectToUpdate = db.getCollection(collection).findOne(
-                    new BasicDBObject("_id", new ObjectId(object.get("_id").toString())));
+    protected String getObjectIdAsString(Object objectId) {
 
+        if (objectId == null) return null;
 
-            if (objectToUpdate != null) {
-                db.getCollection(collection).update(objectToUpdate, object);
-            } else {
-                logger.warn("Could not find existing object with _id: " + object.get("_id").toString() +
-                        ", falling back to insert");
-                db.getCollection(collection).insert(object);
+        if (objectId instanceof String) {
+            return (String) objectId;
+        } else if (objectId instanceof ObjectId) {
+            return ((ObjectId) objectId).toStringMongod();
+        } else {
+            return null;
+        }
+    }
+
+    protected BasicDBObject performOperation(MuleMessage message, Object object, DB db, String collection) throws Exception {
+
+        BasicDBObject result;
+
+        if (message.getOutboundPropertyNames().contains(MongoDBConnector.MULE_MONGO_DISPATCH_MODE)) {
+
+            String mode = message.getOutboundProperty(MongoDBConnector.MULE_MONGO_DISPATCH_MODE);
+
+            switch (MongoDBDispatchMode.valueOf(mode)) {
+                case INSERT:
+                    result = insert(getObject(object), db, collection);
+                    break;
+                case UPDATE:
+                    result = update(getObject(object), db, collection);
+                    break;
+                case DELETE:
+                    result = delete(getObject(object), db, collection);
+                    break;
+                default:
+                    throw new MongoDBException("No dispatch mode associated with: " + mode);
             }
         } else {
-            db.getCollection(collection).insert(object);
+            result = insert(getObject(object), db, collection);
         }
 
+        return result;
+    }
+
+    protected BasicDBObject insert(BasicDBObject object, DB db, String collection) {
+        logger.debug(String.format("Inserting to collection %s in DB %s: %s", collection, db, object));
+        db.getCollection(collection).insert(object);
         return object;
     }
+
+    protected BasicDBObject update(BasicDBObject object, DB db, String collection) {
+        logger.debug(String.format("Updating collection %s in DB %s: %s", collection, db, object));
+
+        DBObject objectToUpdate = db.getCollection(collection).findOne(
+                new BasicDBObject("_id", new ObjectId(object.get("_id").toString())));
+        if (objectToUpdate != null) {
+            db.getCollection(collection).update(objectToUpdate, object);
+        } else {
+            throw new MongoException("Could not find existing object with _id: " + object.get("_id").toString());
+        }
+        return object;
+    }
+
+    protected BasicDBObject delete(BasicDBObject object, DB db, String collection) {
+        logger.debug(String.format("Deleting from collection %s in DB %s: %s", collection, db, object));
+        db.getCollection(collection).remove(object);
+        return object;
+    }
+
 
     protected BasicDBObject getObject(Object payload) throws Exception {
         BasicDBObject object = null;

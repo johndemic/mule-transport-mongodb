@@ -30,6 +30,7 @@ public class MongoDBConnector extends AbstractConnector {
     public static final String PROPERTY_FILENAME = "filename";
     public static final String PROPERTY_OBJECT_ID = "objectId";
 
+    public static final String MULE_MONGO_DISPATCH_MODE = "dispatch_mode";
 
     String database;
     String hostname = "localhost";

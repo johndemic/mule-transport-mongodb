@@ -62,8 +62,71 @@ public class MongoDBFunctionalTestCase extends FunctionalTestCase {
                 }
             }
         });
-
     }
+
+    public void testCanUpdateStringAndRequestResults() throws Exception {
+
+        MuleClient client = new MuleClient(muleContext);
+        String payload = "{\"name\": \"Johnny Five\"}";
+        client.send("vm://input", payload, null);
+        assertTrue(latch.await(5, TimeUnit.SECONDS));
+        List results = (List) client.request("mongodb://stuff", 15000).getPayload();
+        assertNotNull(results);
+
+        Map result = (Map) results.get(0);
+        assertEquals(result.get("name"), "Johnny Five");
+
+        String id = result.get("_id").toString();
+        assertNotNull(id);
+
+        String newPayload = "{\"_id\": " + '"' + id + '"' + ",\"age\": \"1\",\"name\": \"John the Fifth\"}";
+        latch = new CountDownLatch(2);
+
+        Map properties = new HashMap();
+        properties.put(MongoDBConnector.MULE_MONGO_DISPATCH_MODE, MongoDBDispatchMode.UPDATE.toString());
+
+        client.send("mongodb://stuff", newPayload, properties);
+
+        assertTrue(latch.await(5, TimeUnit.SECONDS));
+        results = (List) client.request("mongodb://stuff", 15000).getPayload();
+        assertNotNull(results);
+        result = (Map) results.get(0);
+
+        assertEquals(1, results.size());
+        assertEquals(id, result.get("_id").toString());
+        assertEquals("1", result.get("age"));
+        assertEquals("John the Fifth", result.get("name"));
+    }
+
+    public void testCanDeleteStringAndRequestResults() throws Exception {
+
+        MuleClient client = new MuleClient(muleContext);
+        String payload = "{\"name\": \"Foo\"}";
+        client.send("mongodb://stuff", payload, null);
+        assertTrue(latch.await(5, TimeUnit.SECONDS));
+        List results = (List) client.request("mongodb://stuff", 15000).getPayload();
+        assertNotNull(results);
+
+        Map result = (Map) results.get(0);
+        assertEquals(result.get("name"), "Foo");
+
+        String id = result.get("_id").toString();
+        assertNotNull(id);
+
+        String newPayload = "{\"name\": \"Foo\"}";
+        latch = new CountDownLatch(2);
+
+        Map properties = new HashMap();
+        properties.put(MongoDBConnector.MULE_MONGO_DISPATCH_MODE, MongoDBDispatchMode.DELETE.toString());
+
+        client.send("mongodb://stuff", newPayload, properties);
+
+        assertTrue(latch.await(5, TimeUnit.SECONDS));
+        results = (List) client.request("mongodb://stuff", 15000).getPayload();
+        assertNotNull(results);
+        assertEquals(0, results.size());
+    }
+
 
     public void testCanInsertStringAndRequestResults() throws Exception {
 
@@ -109,37 +172,6 @@ public class MongoDBFunctionalTestCase extends FunctionalTestCase {
         assertTrue(latch.await(5, TimeUnit.SECONDS));
         List results = (List) client.request("mongodb://stuff", 15000).getPayload();
         assertEquals(1, results.size());
-    }
-
-    public void testCanUpdateStringAndRequestResults() throws Exception {
-
-        MuleClient client = new MuleClient(muleContext);
-        String payload = "{\"name\": \"Johnny Five\"}";
-        client.send("vm://input", payload, null);
-        assertTrue(latch.await(5, TimeUnit.SECONDS));
-        List results = (List) client.request("mongodb://stuff", 15000).getPayload();
-        assertNotNull(results);
-        /*
-        ToDo Fix this test, using the latch is fragile
-        Map result = (Map) results.get(0);
-        assertEquals(result.get("name"), "Johnny Five");
-
-        String id = result.get("_id").toString();
-        assertNotNull(id);
-
-        String newPayload = "{\"_id\": " + '"' + id + '"' + ",\"age\": \"1\",\"name\": \"John the Fifth\"}";
-        latch = new CountDownLatch(2);
-        client.send("vm://input", newPayload, null);
-        assertTrue(latch.await(5, TimeUnit.SECONDS));
-        results = (List) client.request("mongodb://stuff", 15000).getPayload();
-        assertNotNull(results);
-        result = (Map) results.get(0);
-
-        assertEquals(1, results.size());
-        assertEquals(id, result.get("_id").toString());
-        assertEquals("1", result.get("age"));
-        assertEquals("John the Fifth", result.get("name")); */
-
     }
 
 

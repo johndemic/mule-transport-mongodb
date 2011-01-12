@@ -20,6 +20,7 @@
 
     <vm:connector name="vmConnector"/>
 
+
     <notifications dynamic="true">
         <notification event="ENDPOINT-MESSAGE"/>
     </notifications>

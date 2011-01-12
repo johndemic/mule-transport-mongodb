@@ -16,6 +16,7 @@ import org.mule.config.spring.parsers.MuleDefinitionParser;
 import org.mule.config.spring.parsers.assembly.configuration.PrefixValueMap;
 import org.mule.config.spring.parsers.specific.MessageProcessorDefinitionParser;
 import org.mule.config.spring.parsers.specific.endpoint.TransportEndpointDefinitionParser;
+import org.mule.config.spring.parsers.specific.endpoint.TransportGlobalEndpointDefinitionParser;
 import org.mule.endpoint.URIBuilder;
 import org.mule.transport.mongodb.MongoDBConnector;
 import org.mule.transport.mongodb.transformer.GridFSDBFileToByteArrayTransformer;
@@ -28,6 +29,13 @@ import org.mule.transport.mongodb.transformer.GridFSDBFileToInputStreamTransform
 public class MongodbNamespaceHandler extends AbstractMuleNamespaceHandler {
 
     public void init() {
+
+        registerEndpointDefinitionParser("endpoint",
+                new TransportGlobalEndpointDefinitionParser(MongoDBConnector.MONGODB,
+                        TransportGlobalEndpointDefinitionParser.PROTOCOL,
+                        TransportGlobalEndpointDefinitionParser.RESTRICTED_ENDPOINT_ATTRIBUTES,
+                        new String[][]{new String[]{"collection"}, new String[]{"bucket"}}, new String[][]{}));
+
 
         registerEndpointDefinitionParser("inbound-endpoint",
                 new TransportEndpointDefinitionParser(MongoDBConnector.MONGODB,
@@ -42,10 +50,10 @@ public class MongodbNamespaceHandler extends AbstractMuleNamespaceHandler {
                         new String[][]{new String[]{"collection"}, new String[]{"bucket"}}, new String[][]{}));
 
         registerBeanDefinitionParser("db-file-to-byte-array",
-                        new MessageProcessorDefinitionParser(GridFSDBFileToByteArrayTransformer.class));
+                new MessageProcessorDefinitionParser(GridFSDBFileToByteArrayTransformer.class));
 
         registerBeanDefinitionParser("db-file-to-input-stream",
-                        new MessageProcessorDefinitionParser(GridFSDBFileToInputStreamTransformer.class));
+                new MessageProcessorDefinitionParser(GridFSDBFileToInputStreamTransformer.class));
 
         registerConnectorDefinitionParser(MongoDBConnector.class);
     }

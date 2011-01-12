@@ -124,7 +124,6 @@
             <xsd:extension base="mule:outboundEndpointType">
                 <xsd:attributeGroup ref="outboundAddressAttributes"/>
                 <xsd:attributeGroup ref="propertyAttributes"/>
-
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>
@@ -133,6 +132,9 @@
     <xsd:complexType name="globalEndpointType">
         <xsd:complexContent>
             <xsd:extension base="mule:globalEndpointType">
+                <xsd:attribute name="collection" type="xsd:string"/>
+                <xsd:attribute name="bucket" type="xsd:string"/>
+                <xsd:attribute name="query" type="xsd:string"/>
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>

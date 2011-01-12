@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mule xmlns="http://www.mulesoft.org/schema/mule/core"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xmlns:mongodb="http://www.mulesoft.org/schema/mule/mongodb"
+      xmlns:vm="http://www.mulesoft.org/schema/mule/vm"
+      xsi:schemaLocation="
+       http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/3.0/mule.xsd
+       http://www.mulesoft.org/schema/mule/mongodb http://www.mulesoft.org/schema/mule/mongodb/3.0/mule-mongodb.xsd
+       http://www.mulesoft.org/schema/mule/vm http://www.mulesoft.org/schema/mule/vm/3.0/mule-vm.xsd
+       ">
+
+    <mongodb:connector name="mongodbConnector"
+                       database="mule-mongodb"
+                       username="user"
+                       password="pass"
+                       pollingFrequency="1000"
+                       hostname="localhost"/>
+
+
+    <mongodb:endpoint name="mongoGlobalOutboundEndpoint" collection="stuff" />
+    <mongodb:endpoint name="mongoGlobalInboundEndpoint" collection="foo" query='{ "name": "foo2" }'/>
+
+    <flow name="Mongo Outbound Flow">
+        <vm:inbound-endpoint path="input"/>
+        <outbound-endpoint ref="mongoGlobalOutboundEndpoint"/>
+        <vm:outbound-endpoint path="output"/>
+    </flow>
+
+    <flow name="Mongo Inbound Flow">
+        <inbound-endpoint ref="mongoGlobalInboundEndpoint"/>
+        <vm:outbound-endpoint path="fooOutput"/>
+    </flow>
+
+</mule>

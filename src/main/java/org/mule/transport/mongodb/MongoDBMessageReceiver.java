@@ -18,6 +18,7 @@ import com.mongodb.gridfs.GridFS;
 import com.mongodb.gridfs.GridFSDBFile;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.mule.api.MuleException;
+import org.mule.api.construct.FlowConstruct;
 import org.mule.api.endpoint.InboundEndpoint;
 import org.mule.api.lifecycle.CreateException;
 import org.mule.api.service.Service;
@@ -34,6 +35,13 @@ import java.util.List;
 public class MongoDBMessageReceiver extends AbstractPollingMessageReceiver {
 
     ObjectMapper mapper;
+
+
+    public MongoDBMessageReceiver(Connector connector, FlowConstruct flowConstruct, InboundEndpoint endpoint)
+            throws CreateException {
+        super(connector, flowConstruct, endpoint);
+        mapper = new ObjectMapper();
+    }
 
 
     public MongoDBMessageReceiver(Connector connector, Service service,
@@ -82,7 +90,9 @@ public class MongoDBMessageReceiver extends AbstractPollingMessageReceiver {
 
         db.requestDone();
 
-        routeMessage(createMuleMessage(result));
+        if (result.size() > 0) {
+            routeMessage(createMuleMessage(result));
+        }
     }
 
     void pollBucket(String bucket) throws Exception {
@@ -101,7 +111,7 @@ public class MongoDBMessageReceiver extends AbstractPollingMessageReceiver {
         logger.debug(String.format("Query %s on bucket %s returned %d results", query, bucket, results.size()));
 
         db.requestDone();
-        
+
         routeMessage(createMuleMessage(results));
     }
 

@@ -51,7 +51,6 @@ public class MongoDBMessageDispatcher extends AbstractMessageDispatcher {
 
     public void doDispatch(MuleEvent event) throws Exception {
 
-
         logger.debug("Attempting to evaluate endpoint: " + event.getEndpoint().getEndpointURI().toString());
         String evaluatedEndpoint =
                 event.getMuleContext().getExpressionManager().parse(event.getEndpoint().getEndpointURI().toString(),

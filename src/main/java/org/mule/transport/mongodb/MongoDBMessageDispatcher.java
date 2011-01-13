@@ -192,7 +192,7 @@ public class MongoDBMessageDispatcher extends AbstractMessageDispatcher {
         return object;
     }
 
-    protected BasicDBObject update(BasicDBObject object, DB db, String collection, MuleMessage message) {
+    protected BasicDBObject update(BasicDBObject object, DB db, String collection, MuleMessage message) throws Exception {
         logger.debug(String.format("Updating collection %s in DB %s: %s", collection, db, object));
 
         boolean upsert = false;
@@ -208,21 +208,35 @@ public class MongoDBMessageDispatcher extends AbstractMessageDispatcher {
                 multi = true;
         }
 
-        DBObject objectToUpdate = db.getCollection(collection).findOne(
-                new BasicDBObject("_id", new ObjectId(object.get("_id").toString())));
-        if (objectToUpdate != null) {
+        DBObject objectToUpdate;
 
-            WriteConcern writeConcern = WriteConcernFactory.getWriteConcern(message);
+        if (!message.getOutboundPropertyNames().contains(MongoDBConnector.MULE_MONGO_UPDATE_QUERY)) {
 
-            if (writeConcern == null) {
-                db.getCollection(collection).update(objectToUpdate, object, upsert, multi);
-            } else {
-                logger.debug("Using WriteConcern value " + writeConcern);
-                db.getCollection(collection).update(objectToUpdate, object, upsert, multi, writeConcern);
-            }
+            logger.debug(String.format("%s property is  not set, updating object using _id value of payload",
+                    MongoDBConnector.MULE_MONGO_UPDATE_QUERY));
+            objectToUpdate = db.getCollection(collection).findOne(
+                    new BasicDBObject("_id", new ObjectId(object.get("_id").toString())));
+
+            if (objectToUpdate == null)
+                throw new MongoException("Could not find existing object with _id: " + object.get("_id").toString());
         } else {
-            throw new MongoException("Could not find existing object with _id: " + object.get("_id").toString());
+            String updateQuery = message.getOutboundProperty(MongoDBConnector.MULE_MONGO_UPDATE_QUERY);
+            logger.debug(String.format("%s property is set, building query from %s",
+                    MongoDBConnector.MULE_MONGO_UPDATE_QUERY, updateQuery));
+            objectToUpdate = mapper.readValue(updateQuery, BasicDBObject.class);
+            if (objectToUpdate == null)
+                throw new MongoException("Could not find create update query from: " + updateQuery);
         }
+
+        WriteConcern writeConcern = WriteConcernFactory.getWriteConcern(message);
+
+        if (writeConcern == null) {
+            db.getCollection(collection).update(objectToUpdate, object, upsert, multi);
+        } else {
+            logger.debug("Using WriteConcern value " + writeConcern);
+            db.getCollection(collection).update(objectToUpdate, object, upsert, multi, writeConcern);
+        }
+
         return object;
     }
 

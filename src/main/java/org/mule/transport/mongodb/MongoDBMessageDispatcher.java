@@ -218,7 +218,7 @@ public class MongoDBMessageDispatcher extends AbstractMessageDispatcher {
                     new BasicDBObject("_id", new ObjectId(object.get("_id").toString())));
 
             if (objectToUpdate == null)
-                throw new MongoException("Could not find existing object with _id: " + object.get("_id").toString());
+                return (insert(object, db, collection, message));
         } else {
             String updateQuery = message.getOutboundProperty(MongoDBConnector.MULE_MONGO_UPDATE_QUERY);
             logger.debug(String.format("%s property is set, building query from %s",

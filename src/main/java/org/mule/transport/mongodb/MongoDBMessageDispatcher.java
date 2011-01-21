@@ -52,9 +52,11 @@ public class MongoDBMessageDispatcher extends AbstractMessageDispatcher {
     public void doDispatch(MuleEvent event) throws Exception {
 
         logger.debug("Attempting to evaluate endpoint: " + event.getEndpoint().getEndpointURI().toString());
+
         String evaluatedEndpoint =
                 event.getMuleContext().getExpressionManager().parse(event.getEndpoint().getEndpointURI().toString(),
                         event.getMessage());
+
         logger.debug("Evaluated endpoint: " + evaluatedEndpoint);
 
         String destination = evaluatedEndpoint.split("://")[1];
@@ -221,9 +223,12 @@ public class MongoDBMessageDispatcher extends AbstractMessageDispatcher {
                 return (insert(object, db, collection, message));
         } else {
             String updateQuery = message.getOutboundProperty(MongoDBConnector.MULE_MONGO_UPDATE_QUERY);
+
+            String evaluatedQuery = message.getMuleContext().getExpressionManager().parse(updateQuery, message);
+
             logger.debug(String.format("%s property is set, building query from %s",
-                    MongoDBConnector.MULE_MONGO_UPDATE_QUERY, updateQuery));
-            objectToUpdate = mapper.readValue(updateQuery, BasicDBObject.class);
+                    MongoDBConnector.MULE_MONGO_UPDATE_QUERY, evaluatedQuery));
+            objectToUpdate = mapper.readValue(evaluatedQuery, BasicDBObject.class);
             if (objectToUpdate == null)
                 throw new MongoException("Could not find create update query from: " + updateQuery);
         }
@@ -270,6 +275,12 @@ public class MongoDBMessageDispatcher extends AbstractMessageDispatcher {
             object = (BasicDBObject) payload;
         }
 
+        /*
+        if (payload instanceof JsonData) {
+            JsonData jsonData = (JsonData) payload;
+            jsonData.toString();
+        } */
+
         if (object == null) {
             throw new MongoDBException("Cannot persist objects of type: " + payload.getClass());
         }
@@ -302,7 +313,6 @@ public class MongoDBMessageDispatcher extends AbstractMessageDispatcher {
 
         if (payload instanceof String) {
             file = gridFS.createFile(((String) payload).getBytes());
-
         }
 
         if (file == null) {

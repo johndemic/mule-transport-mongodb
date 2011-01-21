@@ -31,4 +31,6 @@
         <vm:outbound-endpoint path="fooOutput"/>
     </flow>
 
+
+
 </mule>

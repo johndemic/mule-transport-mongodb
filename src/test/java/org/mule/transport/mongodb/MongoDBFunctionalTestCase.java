@@ -137,6 +137,47 @@ public class MongoDBFunctionalTestCase extends FunctionalTestCase {
         assertEquals("John the Fifth", result.get("name"));
     }
 
+    public void testCanUpdateStringWithQueryAndRequestResultsWithExpressionQuery() throws Exception {
+
+        MuleClient client = new MuleClient(muleContext);
+        String payload = "{\"name\": \"Johnny Five\"}";
+
+        Map properties = new HashMap();
+        properties.put(MongoDBConnector.MULE_MONGO_WRITE_CONCERN, MongoDBWriteConcern.NORMAL.toString());
+
+        client.send("mongodb://stuff", payload, properties);
+
+        List results = (List) client.request("mongodb://stuff", 15000).getPayload();
+        assertNotNull(results);
+
+        Map result = (Map) results.get(0);
+        assertEquals(result.get("name"), "Johnny Five");
+
+        String id = result.get("_id").toString();
+        assertNotNull(id);
+
+        String newPayload = "{\"_id\": " + '"' + id + '"' + ",\"age\": \"1\",\"name\": \"John the Fifth\"}";
+
+        properties = new HashMap();
+        properties.put(MongoDBConnector.MULE_MONGO_DISPATCH_MODE, MongoDBDispatchMode.UPDATE.toString());
+        properties.put(MongoDBConnector.MULE_MONGO_WRITE_CONCERN, MongoDBWriteConcern.NORMAL.toString());
+        properties.put("FOO", "Johnny Five");
+
+        properties.put(MongoDBConnector.MULE_MONGO_UPDATE_QUERY, "{\"name\": \"#[header:outbound:FOO]\"}");
+
+        client.send("mongodb://stuff", newPayload, properties);
+
+        results = (List) client.request("mongodb://stuff", 15000).getPayload();
+        assertNotNull(results);
+        result = (Map) results.get(0);
+
+        assertEquals(1, results.size());
+        assertEquals(id, result.get("_id").toString());
+        assertEquals("1", result.get("age"));
+        assertEquals("John the Fifth", result.get("name"));
+    }
+
+
     public void testCanDeleteStringAndRequestResults() throws Exception {
 
         Map properties = new HashMap();

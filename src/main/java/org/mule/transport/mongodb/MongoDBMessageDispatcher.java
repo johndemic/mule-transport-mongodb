@@ -36,6 +36,8 @@ public class MongoDBMessageDispatcher extends AbstractMessageDispatcher {
 
     ObjectMapper mapper;
 
+    String updateQuery;
+
     public MongoDBMessageDispatcher(OutboundEndpoint endpoint) {
         super(endpoint);
         connector = (MongoDBConnector) endpoint.getConnector();
@@ -78,6 +80,7 @@ public class MongoDBMessageDispatcher extends AbstractMessageDispatcher {
                 event.getMuleContext().getExpressionManager().parse(event.getEndpoint().getEndpointURI().toString(),
                         event.getMessage());
 
+
         logger.debug("Evaluated endpoint: " + evaluatedEndpoint);
 
         String destination = evaluatedEndpoint.split("://")[1];
@@ -115,10 +118,8 @@ public class MongoDBMessageDispatcher extends AbstractMessageDispatcher {
         if (payload instanceof List) {
             List list = (List) payload;
 
-            MuleMessage message = event.getMessage();
-
             for (Object o : list) {
-                performOperation(message, o, db, collection);
+                performOperation(event, o, db, collection);
             }
 
             db.requestDone();
@@ -126,7 +127,7 @@ public class MongoDBMessageDispatcher extends AbstractMessageDispatcher {
         } else {
             MuleMessage message = event.getMessage();
 
-            BasicDBObject result = performOperation(message, message.getPayload(), db, collection);
+            BasicDBObject result = performOperation(event, message.getPayload(), db, collection);
 
             Object id = getObjectIdAsString(result.get("_id"));
 
@@ -154,9 +155,11 @@ public class MongoDBMessageDispatcher extends AbstractMessageDispatcher {
         }
     }
 
-    protected BasicDBObject performOperation(MuleMessage message, Object object, DB db, String collection) throws Exception {
+    protected BasicDBObject performOperation(MuleEvent event, Object object, DB db, String collection) throws Exception {
 
         BasicDBObject result;
+
+        MuleMessage message = event.getMessage();
 
         if (message.getOutboundPropertyNames().contains(MongoDBConnector.MULE_MONGO_DISPATCH_MODE)) {
 
@@ -164,27 +167,27 @@ public class MongoDBMessageDispatcher extends AbstractMessageDispatcher {
 
             switch (MongoDBDispatchMode.valueOf(mode)) {
                 case INSERT:
-                    result = insert(getObject(object), db, collection, message);
+                    result = insert(getObject(object), db, collection, event);
                     break;
                 case UPDATE:
-                    result = update(getObject(object), db, collection, message);
+                    result = update(getObject(object), db, collection, event);
                     break;
                 case DELETE:
-                    result = delete(getObject(object), db, collection, message);
+                    result = delete(getObject(object), db, collection, event);
                     break;
                 default:
                     throw new MongoDBException("No dispatch mode associated with: " + mode);
             }
         } else {
-            result = insert(getObject(object), db, collection, message);
+            result = insert(getObject(object), db, collection, event);
         }
 
         return result;
     }
 
-    protected BasicDBObject insert(BasicDBObject object, DB db, String collection, MuleMessage message) {
+    protected BasicDBObject insert(BasicDBObject object, DB db, String collection, MuleEvent event) {
         logger.debug(String.format("Inserting to collection %s in DB %s: %s", collection, db, object));
-        WriteConcern writeConcern = WriteConcernFactory.getWriteConcern(message);
+        WriteConcern writeConcern = WriteConcernFactory.getWriteConcern(event.getMessage());
         if (writeConcern == null) {
             db.getCollection(collection).insert(object);
         } else {
@@ -194,14 +197,21 @@ public class MongoDBMessageDispatcher extends AbstractMessageDispatcher {
         return object;
     }
 
-    protected BasicDBObject update(BasicDBObject object, DB db, String collection, MuleMessage message) throws Exception {
+    protected BasicDBObject update(BasicDBObject object, DB db, String collection, MuleEvent event) throws Exception {
         logger.debug(String.format("Updating collection %s in DB %s: %s", collection, db, object));
 
         boolean upsert = false;
         boolean multi = false;
 
+        MuleMessage message = event.getMessage();
+
         if (message.getOutboundPropertyNames().contains(MongoDBConnector.MULE_MONGO_UPDATE_UPSERT)) {
             if (message.getOutboundProperty(MongoDBConnector.MULE_MONGO_UPDATE_UPSERT).equals("true"))
+                upsert = true;
+        }
+
+        if (event.getEndpoint().getProperties().containsKey("upsert")) {
+            if (event.getEndpoint().getProperty("upsert").equals("true"))
                 upsert = true;
         }
 
@@ -210,19 +220,28 @@ public class MongoDBMessageDispatcher extends AbstractMessageDispatcher {
                 multi = true;
         }
 
+        if (event.getEndpoint().getProperties().containsKey("milti")) {
+            if (event.getEndpoint().getProperty("multi").equals("true"))
+                multi = true;
+        }
+
         DBObject objectToUpdate;
 
-        if (!message.getOutboundPropertyNames().contains(MongoDBConnector.MULE_MONGO_UPDATE_QUERY)) {
-
+        if (!message.getOutboundPropertyNames().contains(MongoDBConnector.MULE_MONGO_UPDATE_QUERY) &&
+                !event.getEndpoint().getProperties().containsKey("updateQuery")) {
             logger.debug(String.format("%s property is  not set, updating object using _id value of payload",
                     MongoDBConnector.MULE_MONGO_UPDATE_QUERY));
             objectToUpdate = db.getCollection(collection).findOne(
                     new BasicDBObject("_id", new ObjectId(object.get("_id").toString())));
 
             if (objectToUpdate == null)
-                return (insert(object, db, collection, message));
+                return (insert(object, db, collection, event));
         } else {
             String updateQuery = message.getOutboundProperty(MongoDBConnector.MULE_MONGO_UPDATE_QUERY);
+
+            if (updateQuery == null) {
+                updateQuery = (String) event.getEndpoint().getProperty("updateQuery");
+            }
 
             String evaluatedQuery = message.getMuleContext().getExpressionManager().parse(updateQuery, message);
 
@@ -245,10 +264,12 @@ public class MongoDBMessageDispatcher extends AbstractMessageDispatcher {
         return object;
     }
 
-    protected BasicDBObject delete(BasicDBObject object, DB db, String collection, MuleMessage message) {
+    protected BasicDBObject delete(BasicDBObject object, DB db, String collection, MuleEvent event) {
+
         logger.debug(String.format("Deleting from collection %s in DB %s: %s", collection, db, object));
 
-        WriteConcern writeConcern = WriteConcernFactory.getWriteConcern(message);
+
+        WriteConcern writeConcern = WriteConcernFactory.getWriteConcern(event.getMessage());
 
         if (writeConcern == null) {
             db.getCollection(collection).remove(object);
@@ -336,6 +357,7 @@ public class MongoDBMessageDispatcher extends AbstractMessageDispatcher {
 
         logger.debug(String.format("GridFS file %s saved in %s seconds", file.getId(), elapsed / 1000.0));
 
+
         file.validate();
 
         ObjectId id = (ObjectId) file.getId();
@@ -345,7 +367,6 @@ public class MongoDBMessageDispatcher extends AbstractMessageDispatcher {
 
         return file;
     }
-
 
 }
 

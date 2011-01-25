@@ -31,6 +31,11 @@
         <vm:outbound-endpoint path="fooOutput"/>
     </flow>
 
+    <flow name="Foo Flow">
+        <vm:inbound-endpoint path="foo"/>
+        <mongodb:outbound-endpoint collection="foo" updateQuery='{ "name": "foo2" }' upsert="true"/>
+    </flow>
+
 
 
 </mule>

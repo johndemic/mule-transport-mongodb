@@ -28,6 +28,18 @@ public class MongoDBFlowFunctionalTestCase extends FunctionalTestCase {
         return "mongodb-global-endpoint-test-config.xml";
     }
 
+    public void testUpdateAttributes() throws Exception {
+        MuleClient client = new MuleClient(muleContext);
+
+        Map<String, String> payload = new HashMap<String, String>();
+        payload.put("name", "foo2");
+
+        client.dispatch("vm://foo", payload, null);
+        MuleMessage result = client.request("mongodb://foo", 15000);
+        assertNotNull(result);
+
+    }
+
     public void testGlobalEndpointOutbound() throws Exception {
         MuleClient client = new MuleClient(muleContext);
 

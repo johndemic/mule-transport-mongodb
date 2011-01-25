@@ -141,6 +141,10 @@
     <xsd:attributeGroup name="outboundAddressAttributes">
         <xsd:attribute name="collection" type="xsd:string"/>
         <xsd:attribute name="bucket" type="xsd:string"/>
+        <xsd:attribute name="updateQuery" type="xsd:string"/>
+        <xsd:attribute name="upsert" type="xsd:string"/>
+        <xsd:attribute name="multi" type="xsd:string"/>
+        <xsd:attribute name="writeConcern" type="xsd:string"/>
     </xsd:attributeGroup>
 
     <xsd:attributeGroup name="inboundAddressAttributes">

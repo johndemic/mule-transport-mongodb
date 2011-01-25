@@ -191,7 +191,7 @@ public class MongoDBMessageDispatcher extends AbstractMessageDispatcher {
 
     protected BasicDBObject insert(BasicDBObject object, DB db, String collection, MuleEvent event) {
         logger.debug(String.format("Inserting to collection %s in DB %s: %s", collection, db, object));
-        WriteConcern writeConcern = WriteConcernFactory.getWriteConcern(event.getMessage());
+        WriteConcern writeConcern = WriteConcernFactory.getWriteConcern(event);
         if (writeConcern == null) {
             db.getCollection(collection).insert(object);
         } else {
@@ -256,7 +256,7 @@ public class MongoDBMessageDispatcher extends AbstractMessageDispatcher {
                 throw new MongoException("Could not find create update query from: " + updateQuery);
         }
 
-        WriteConcern writeConcern = WriteConcernFactory.getWriteConcern(message);
+        WriteConcern writeConcern = WriteConcernFactory.getWriteConcern(event);
 
         if (writeConcern == null) {
             db.getCollection(collection).update(objectToUpdate, object, upsert, multi);
@@ -273,7 +273,7 @@ public class MongoDBMessageDispatcher extends AbstractMessageDispatcher {
         logger.debug(String.format("Deleting from collection %s in DB %s: %s", collection, db, object));
 
 
-        WriteConcern writeConcern = WriteConcernFactory.getWriteConcern(event.getMessage());
+        WriteConcern writeConcern = WriteConcernFactory.getWriteConcern(event);
 
         if (writeConcern == null) {
             db.getCollection(collection).remove(object);

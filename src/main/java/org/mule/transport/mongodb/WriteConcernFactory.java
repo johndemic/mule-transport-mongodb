@@ -1,15 +1,23 @@
 package org.mule.transport.mongodb;
 
 import com.mongodb.WriteConcern;
+import org.mule.api.MuleEvent;
 import org.mule.api.MuleMessage;
+import org.mule.util.StringUtils;
 
 public class WriteConcernFactory {
 
-    public static WriteConcern getWriteConcern(MuleMessage message) {
+    public static WriteConcern getWriteConcern(MuleEvent event) {
 
-        if (!message.getOutboundPropertyNames().contains(MongoDBConnector.MULE_MONGO_WRITE_CONCERN)) return null;
+        MuleMessage message = event.getMessage();
 
-        String writeConcernString = message.getOutboundProperty(MongoDBConnector.MULE_MONGO_WRITE_CONCERN);
+        String writeConcernString = message.getOutboundProperty(MongoDBConnector.MULE_MONGO_WRITE_CONCERN, null);
+
+        if (writeConcernString == null) {
+            writeConcernString = (String) event.getEndpoint().getProperty("writeConcern");
+        }
+
+        if (StringUtils.isBlank(writeConcernString)) return null;
 
         switch (MongoDBWriteConcern.valueOf(writeConcernString)) {
             case NORMAL:

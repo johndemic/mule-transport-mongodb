@@ -34,7 +34,7 @@ public class MongoDBFlowFunctionalTestCase extends FunctionalTestCase {
         Map<String, String> payload = new HashMap<String, String>();
         payload.put("name", "foo");
 
-        client.dispatch("vm://upsert.true", payload, null);
+        client.send("vm://upsert.true", payload, null);
         client.request("vm://upsert.out.true",10000);
         MuleMessage result = client.request("mongodb://upserts", 15000);
         assertNotNull(result);

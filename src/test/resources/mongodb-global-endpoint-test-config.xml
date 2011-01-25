@@ -36,7 +36,7 @@
         <mongodb:outbound-endpoint collection="upserts" dispatchMode="update"
                                    updateQuery='{ "thiswont": "matchanything" }'
                                    writeConcern="SAFE"
-                                   upsert="true"/>
+                                   upsert="true" exchange-pattern="request-response"/>
         <vm:outbound-endpoint path="upsert.out.true" />
     </flow>
 
@@ -46,7 +46,7 @@
         <mongodb:outbound-endpoint collection="upserts" dispatchMode="update"
                                    updateQuery='{ "thiswont": "matchanything" }'
                                    writeConcern="SAFE"
-                                   upsert="false"/>
+                                   upsert="false" exchange-pattern="request-response"/>
         <vm:outbound-endpoint path="upsert.out.false" />
     </flow>
 

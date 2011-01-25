@@ -36,8 +36,6 @@ public class MongoDBMessageDispatcher extends AbstractMessageDispatcher {
 
     ObjectMapper mapper;
 
-    String updateQuery;
-
     public MongoDBMessageDispatcher(OutboundEndpoint endpoint) {
         super(endpoint);
         connector = (MongoDBConnector) endpoint.getConnector();
@@ -161,9 +159,15 @@ public class MongoDBMessageDispatcher extends AbstractMessageDispatcher {
 
         MuleMessage message = event.getMessage();
 
-        if (message.getOutboundPropertyNames().contains(MongoDBConnector.MULE_MONGO_DISPATCH_MODE)) {
+        if (message.getOutboundPropertyNames().contains(MongoDBConnector.MULE_MONGO_DISPATCH_MODE) ||
+                event.getEndpoint().getProperties().containsKey("dispatchMode")) {
+            String mode = StringUtils.upperCase((String)
+                    message.getOutboundProperty(MongoDBConnector.MULE_MONGO_DISPATCH_MODE, null));
+            if (mode == null) {
+                mode = StringUtils.upperCase((String) event.getEndpoint().getProperty("dispatchMode"));
+            }
 
-            String mode = message.getOutboundProperty(MongoDBConnector.MULE_MONGO_DISPATCH_MODE);
+            logger.debug("dispatch mode is set to: " + mode);
 
             switch (MongoDBDispatchMode.valueOf(mode)) {
                 case INSERT:
@@ -220,7 +224,7 @@ public class MongoDBMessageDispatcher extends AbstractMessageDispatcher {
                 multi = true;
         }
 
-        if (event.getEndpoint().getProperties().containsKey("milti")) {
+        if (event.getEndpoint().getProperties().containsKey("multi")) {
             if (event.getEndpoint().getProperty("multi").equals("true"))
                 multi = true;
         }
@@ -233,9 +237,9 @@ public class MongoDBMessageDispatcher extends AbstractMessageDispatcher {
                     MongoDBConnector.MULE_MONGO_UPDATE_QUERY));
             objectToUpdate = db.getCollection(collection).findOne(
                     new BasicDBObject("_id", new ObjectId(object.get("_id").toString())));
-
-            if (objectToUpdate == null)
-                return (insert(object, db, collection, event));
+            if (!upsert) {
+                throw new MongoException("Object not found from update query and upsert is false");
+            }
         } else {
             String updateQuery = message.getOutboundProperty(MongoDBConnector.MULE_MONGO_UPDATE_QUERY);
 

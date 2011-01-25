@@ -31,11 +31,24 @@
         <vm:outbound-endpoint path="fooOutput"/>
     </flow>
 
-    <flow name="Foo Flow">
-        <vm:inbound-endpoint path="foo"/>
-        <mongodb:outbound-endpoint collection="foo" updateQuery='{ "name": "foo2" }' upsert="true"/>
+    <flow name="Update Upsert Flow">
+        <vm:inbound-endpoint path="upsert.true"/>
+        <mongodb:outbound-endpoint collection="upserts" dispatchMode="update"
+                                   updateQuery='{ "thiswont": "matchanything" }'
+                                   writeConcern="SAFE"
+                                   upsert="true"/>
+        <vm:outbound-endpoint path="upsert.out.true" />
     </flow>
 
+
+     <flow name="Update No Upsert Flow">
+        <vm:inbound-endpoint path="upsert.false"/>
+        <mongodb:outbound-endpoint collection="upserts" dispatchMode="update"
+                                   updateQuery='{ "thiswont": "matchanything" }'
+                                   writeConcern="SAFE"
+                                   upsert="false"/>
+        <vm:outbound-endpoint path="upsert.out.false" />
+    </flow>
 
 
 </mule>

@@ -28,15 +28,39 @@ public class MongoDBFlowFunctionalTestCase extends FunctionalTestCase {
         return "mongodb-global-endpoint-test-config.xml";
     }
 
-    public void testUpdateAttributes() throws Exception {
+    public void testUpsert() throws Exception {
         MuleClient client = new MuleClient(muleContext);
 
         Map<String, String> payload = new HashMap<String, String>();
-        payload.put("name", "foo2");
+        payload.put("name", "foo");
 
-        client.dispatch("vm://foo", payload, null);
-        MuleMessage result = client.request("mongodb://foo", 15000);
+        client.dispatch("vm://upsert.true", payload, null);
+        client.request("vm://upsert.out.true",10000);
+        MuleMessage result = client.request("mongodb://upserts", 15000);
         assertNotNull(result);
+
+        List resultPayload = (List) result.getPayload();
+        assertNotNull(resultPayload);
+        assertEquals(1, resultPayload.size());
+        Map upsertedObject = (Map) resultPayload.get(0);
+        assertEquals("foo", upsertedObject.get("name"));
+
+    }
+
+    public void testNotUpsert() throws Exception {
+        MuleClient client = new MuleClient(muleContext);
+
+        Map<String, String> payload = new HashMap<String, String>();
+        payload.put("name", "foo");
+
+        client.send("vm://upsert.false", payload, null);
+        client.request("vm://upsert.out.false",10000);
+        MuleMessage result = client.request("mongodb://upserts", 15000);
+        assertNotNull(result);
+
+        List resultPayload = (List) result.getPayload();
+        assertNotNull(resultPayload);
+        assertEquals(0, resultPayload.size());
 
     }
 

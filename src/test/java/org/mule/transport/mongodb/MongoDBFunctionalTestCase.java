@@ -86,6 +86,8 @@ public class MongoDBFunctionalTestCase extends FunctionalTestCase {
         properties = new HashMap();
         properties.put(MongoDBConnector.MULE_MONGO_DISPATCH_MODE, MongoDBDispatchMode.UPDATE.toString());
         properties.put(MongoDBConnector.MULE_MONGO_WRITE_CONCERN, MongoDBWriteConcern.NORMAL.toString());
+        properties.put(MongoDBConnector.MULE_MONGO_UPDATE_UPSERT, "true");
+
 
         client.send("mongodb://stuff", newPayload, properties);
 

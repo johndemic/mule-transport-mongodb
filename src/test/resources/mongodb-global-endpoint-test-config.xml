@@ -17,7 +17,7 @@
                        hostname="localhost"/>
 
 
-    <mongodb:endpoint name="mongoGlobalOutboundEndpoint" collection="stuff" />
+    <mongodb:endpoint name="mongoGlobalOutboundEndpoint" collection="stuff"/>
     <mongodb:endpoint name="mongoGlobalInboundEndpoint" collection="foo" query='{ "name": "foo2" }'/>
 
     <flow name="Mongo Outbound Flow">
@@ -37,18 +37,29 @@
                                    updateQuery='{ "thiswont": "matchanything" }'
                                    writeConcern="SAFE"
                                    upsert="true" exchange-pattern="request-response"/>
-        <vm:outbound-endpoint path="upsert.out.true" />
+        <vm:outbound-endpoint path="upsert.out.true"/>
     </flow>
 
 
-     <flow name="Update No Upsert Flow">
+    <flow name="Update No Upsert Flow">
         <vm:inbound-endpoint path="upsert.false"/>
         <mongodb:outbound-endpoint collection="upserts" dispatchMode="update"
                                    updateQuery='{ "thiswont": "matchanything" }'
                                    writeConcern="SAFE"
                                    upsert="false" exchange-pattern="request-response"/>
-        <vm:outbound-endpoint path="upsert.out.false" />
+        <vm:outbound-endpoint path="upsert.out.false"/>
     </flow>
 
+
+    <flow name="Query Test With Expression">
+        <vm:inbound-endpoint path="query.expr.in">
+            <message-properties-transformer>
+                <add-message-property key="FOO" value="#[header:INBOUND:FOO]"/>
+            </message-properties-transformer>
+        </vm:inbound-endpoint>
+        <mongodb:outbound-endpoint collection="query" query='{ "name": "#[header:FOO]" }'
+                                   exchange-pattern="request-response"/>
+        <vm:outbound-endpoint path="query.expr.out"/>
+    </flow>
 
 </mule>

@@ -1,6 +1,7 @@
 package org.mule.transport.mongodb;
 
 import com.mongodb.DB;
+import com.mongodb.DBObject;
 import com.mongodb.Mongo;
 import org.mule.api.MuleMessage;
 import org.mule.module.client.MuleClient;
@@ -28,6 +29,30 @@ public class MongoDBFlowFunctionalTestCase extends FunctionalTestCase {
         return "mongodb-global-endpoint-test-config.xml";
     }
 
+    public void testQuery() throws Exception {
+
+
+        MuleClient client = new MuleClient(muleContext);
+
+        String payload = "{\"name\": \"John\"}";
+
+        client.send("mongodb://query", payload, null);
+
+        Map<String, String> properties = new HashMap<String, String>();
+        properties.put("FOO", "John");
+        properties.put(MongoDBConnector.MULE_MONGO_WRITE_CONCERN, MongoDBWriteConcern.SAFE.toString());
+
+        client.dispatch("vm://query.expr.in", "", properties);
+
+        MuleMessage result = client.request("vm://query.expr.out", 15000);
+
+        assertNotNull(result);
+
+        List<DBObject> results = (List<DBObject>) result.getPayload();
+        assertEquals(1, results.size());
+
+    }
+
     public void testUpsert() throws Exception {
         MuleClient client = new MuleClient(muleContext);
 
@@ -35,7 +60,7 @@ public class MongoDBFlowFunctionalTestCase extends FunctionalTestCase {
         payload.put("name", "foo");
 
         client.send("vm://upsert.true", payload, null);
-        client.request("vm://upsert.out.true",10000);
+        client.request("vm://upsert.out.true", 10000);
 
         MuleMessage result = client.request("mongodb://upserts", 15000);
         assertNotNull(result);
@@ -55,7 +80,7 @@ public class MongoDBFlowFunctionalTestCase extends FunctionalTestCase {
         payload.put("name", "foo");
 
         client.send("vm://upsert.false", payload, null);
-        client.request("vm://upsert.out.false",10000);
+        client.request("vm://upsert.out.false", 10000);
         MuleMessage result = client.request("mongodb://upserts", 15000);
         assertNotNull(result);
 

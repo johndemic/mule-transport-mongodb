@@ -23,6 +23,7 @@ import org.mule.util.StringUtils;
 
 import java.io.File;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -78,7 +79,6 @@ public class MongoDBMessageDispatcher extends AbstractMessageDispatcher {
                 event.getMuleContext().getExpressionManager().parse(event.getEndpoint().getEndpointURI().toString(),
                         event.getMessage());
 
-
         logger.debug("Evaluated endpoint: " + evaluatedEndpoint);
 
         String destination = evaluatedEndpoint.split("://")[1];
@@ -89,7 +89,12 @@ public class MongoDBMessageDispatcher extends AbstractMessageDispatcher {
 
         if (!destination.startsWith("bucket:")) {
             logger.debug("Dispatching to collection: " + destination);
-            result = doDispatchToCollection(event, destination);
+
+            if (!endpoint.getProperties().containsKey("query")) {
+                result = doDispatchToCollection(event, destination);
+            } else {
+                result = doQueryCollection(event, destination);
+            }
             responseMessage = createMuleMessage(result);
         } else {
             result = doDispatchToBucket(event, destination.split("bucket:")[1]);
@@ -105,6 +110,31 @@ public class MongoDBMessageDispatcher extends AbstractMessageDispatcher {
                     event.getMessage().<Object>getOutboundProperty(MongoDBConnector.PROPERTY_OBJECT_ID));
         }
         return responseMessage;
+    }
+
+    protected Object doQueryCollection(MuleEvent event, String collection) throws Exception {
+
+        List<DBObject> result = new ArrayList<DBObject>();
+
+        String queryString =
+                event.getMuleContext().getExpressionManager().parse((String) endpoint.getProperty("query"),
+                        event.getMessage());
+
+        logger.debug("Evaluated query: " + queryString);
+        BasicDBObject query = mapper.readValue(queryString, BasicDBObject.class);
+
+        DB db = connector.getMongo().getDB(connector.getDatabase());
+
+        db.requestStart();
+
+        DBCursor cursor = db.getCollection(collection).find(query);
+
+        while (cursor.hasNext()) {
+            result.add(cursor.next());
+        }
+
+        db.requestDone();
+        return result;
     }
 
     protected Object doDispatchToCollection(MuleEvent event, String collection) throws Exception {
@@ -299,12 +329,6 @@ public class MongoDBMessageDispatcher extends AbstractMessageDispatcher {
         if (payload instanceof BasicDBObject) {
             object = (BasicDBObject) payload;
         }
-
-        /*
-        if (payload instanceof JsonData) {
-            JsonData jsonData = (JsonData) payload;
-            jsonData.toString();
-        } */
 
         if (object == null) {
             throw new MongoDBException("Cannot persist objects of type: " + payload.getClass());

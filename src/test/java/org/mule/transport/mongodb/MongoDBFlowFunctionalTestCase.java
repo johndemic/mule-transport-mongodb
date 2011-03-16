@@ -3,9 +3,13 @@ package org.mule.transport.mongodb;
 import com.mongodb.DB;
 import com.mongodb.DBObject;
 import com.mongodb.Mongo;
+import com.mongodb.gridfs.GridFS;
+import com.mongodb.gridfs.GridFSDBFile;
+import com.mongodb.gridfs.GridFSInputFile;
 import org.mule.api.MuleMessage;
 import org.mule.module.client.MuleClient;
 import org.mule.tck.FunctionalTestCase;
+import org.mule.util.IOUtils;
 
 import java.util.HashMap;
 import java.util.List;
@@ -13,12 +17,14 @@ import java.util.Map;
 
 public class MongoDBFlowFunctionalTestCase extends FunctionalTestCase {
 
+    DB db;
+
     @Override
     protected void doSetUp() throws Exception {
         super.doSetUp();
         logger.debug("Dropping database");
         Mongo m = new Mongo("localhost", 27017);
-        DB db = m.getDB("mule-mongodb");
+        db = m.getDB("mule-mongodb");
         db.dropDatabase();
         db.requestDone();
     }
@@ -127,6 +133,27 @@ public class MongoDBFlowFunctionalTestCase extends FunctionalTestCase {
 
         Map mapResult = (Map) result.getPayload();
         assertEquals("foo", mapResult.get("name"));
+    }
+
+    public void testCanLoadFileFromGridFS() throws Exception {
+
+        GridFS gridFS = new GridFS(db, "foo");
+
+        GridFSInputFile file = gridFS.createFile(IOUtils.toInputStream("Hello, world."), "foo.txt");
+        file.save();
+
+        MuleClient client = new MuleClient(muleContext);
+
+        client.dispatch("vm://gridfs.load.in", "foo.txt", null);
+        MuleMessage result = client.request("vm://gridfs.load.out", 15000);
+
+        GridFSDBFile outputFile = (GridFSDBFile) result.getPayload();
+
+        assertNotNull(result);
+        assertEquals("foo.txt", outputFile.getFilename());
+        assertEquals("Hello, world.", IOUtils.toString(outputFile.getInputStream()));
+
+
     }
 
 

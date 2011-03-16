@@ -21,6 +21,7 @@ import org.mule.endpoint.URIBuilder;
 import org.mule.transport.mongodb.MongoDBConnector;
 import org.mule.transport.mongodb.transformer.GridFSDBFileToByteArrayTransformer;
 import org.mule.transport.mongodb.transformer.GridFSDBFileToInputStreamTransformer;
+import org.mule.transport.mongodb.transformer.GridFSFileLoader;
 
 /**
  * Registers a Bean Definition Parser for handling <code><mongodb:connector></code> elements
@@ -29,6 +30,7 @@ import org.mule.transport.mongodb.transformer.GridFSDBFileToInputStreamTransform
 public class MongodbNamespaceHandler extends AbstractMuleNamespaceHandler {
 
     public void init() {
+
 
         registerEndpointDefinitionParser("endpoint",
                 new TransportGlobalEndpointDefinitionParser(MongoDBConnector.MONGODB,
@@ -54,6 +56,9 @@ public class MongodbNamespaceHandler extends AbstractMuleNamespaceHandler {
 
         registerBeanDefinitionParser("db-file-to-input-stream",
                 new MessageProcessorDefinitionParser(GridFSDBFileToInputStreamTransformer.class));
+
+        registerBeanDefinitionParser("gridfs-file",
+                new MessageProcessorDefinitionParser(GridFSFileLoader.class));
 
         registerConnectorDefinitionParser(MongoDBConnector.class);
     }

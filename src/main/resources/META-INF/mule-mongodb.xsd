@@ -190,4 +190,22 @@
         </xsd:complexContent>
     </xsd:complexType>
 
+    <xsd:element name="gridfs-file" type="gridFSTransformerType"
+                 substitutionGroup="mule:abstract-transformer">
+        <xsd:annotation>
+            <xsd:documentation>
+                Takes the payload of a message and uses it as the filename to load a file
+                from the specieif bucket in GridFS
+            </xsd:documentation>
+        </xsd:annotation>
+    </xsd:element>
+
+    <xsd:complexType name="gridFSTransformerType">
+        <xsd:complexContent>
+            <xsd:extension base="mule:abstractTransformerType">
+                <xsd:attribute name="bucket" type="xsd:string"/>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+
 </xsd:schema>

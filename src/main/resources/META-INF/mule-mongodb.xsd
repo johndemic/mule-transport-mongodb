@@ -204,6 +204,7 @@
         <xsd:complexContent>
             <xsd:extension base="mule:abstractTransformerType">
                 <xsd:attribute name="bucket" type="xsd:string"/>
+                <xsd:attribute name="fileExpression"/>
             </xsd:extension>
         </xsd:complexContent>
     </xsd:complexType>

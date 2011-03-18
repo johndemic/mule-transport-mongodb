@@ -13,7 +13,10 @@ import org.mule.transport.mongodb.MongoDBConnector;
  */
 public class GridFSFileLoader extends AbstractMessageTransformer {
 
+    public static final String DEFAULT_EXPRESSION = "#[message:payload]";
+
     String bucket;
+    String expression = DEFAULT_EXPRESSION;
 
     @Override
     public Object transformMessage(MuleMessage message, String outputEncoding) throws TransformerException {
@@ -30,19 +33,24 @@ public class GridFSFileLoader extends AbstractMessageTransformer {
         String filename;
         try {
             filename = message.getMuleContext().getExpressionManager().parse(
-                    message.getPayloadAsString(), message);
+                    expression, message);
+
+
+            logger.debug(String.format("Loading %s from GridFS bucket %s", filename, parsedBucket));
+
+            message.setPayload(gridFS.findOne(filename));
+
         } catch (Exception e) {
             throw new TransformerException(this, e);
         }
-
-        logger.debug(String.format("Loading %s from GridFS bucket %s", filename, parsedBucket));
-
-        message.setPayload(gridFS.findOne(filename));
-
         return message;
     }
 
     public void setBucket(String bucket) {
         this.bucket = bucket;
+    }
+
+    public void setFileExpression(String expression) {
+        this.expression = expression;
     }
 }

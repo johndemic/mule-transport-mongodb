@@ -64,7 +64,7 @@
 
     <flow name="GridFS Load File">
         <vm:inbound-endpoint path="gridfs.load.in"/>
-        <mongodb:gridfs-file bucket="foo"/>
+        <mongodb:gridfs-file bucket="foo" />
         <vm:outbound-endpoint path="gridfs.load.out"/>
     </flow>
 

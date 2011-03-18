@@ -152,8 +152,28 @@ public class MongoDBFlowFunctionalTestCase extends FunctionalTestCase {
         assertNotNull(result);
         assertEquals("foo.txt", outputFile.getFilename());
         assertEquals("Hello, world.", IOUtils.toString(outputFile.getInputStream()));
+    }
 
+    public void testCanLoadFileFromGridFSWithID() throws Exception {
 
+        GridFS gridFS = new GridFS(db, "foo");
+
+        GridFSInputFile file = gridFS.createFile(IOUtils.toInputStream("Hello, world."), "foo.txt");
+        file.save();
+
+        MuleClient client = new MuleClient(muleContext);
+
+        Map<String,Object> properties = new HashMap<String,Object>();
+        properties.put("MONGO_ID", file.getId());
+
+        client.dispatch("vm://gridfs.query.in", "blah", properties);
+        MuleMessage result = client.request("vm://gridfs.query.out", 15000);
+
+        GridFSDBFile outputFile = (GridFSDBFile) result.getPayload();
+
+        assertNotNull(result);
+        assertEquals("foo.txt", outputFile.getFilename());
+        assertEquals("Hello, world.", IOUtils.toString(outputFile.getInputStream()));
     }
 
 

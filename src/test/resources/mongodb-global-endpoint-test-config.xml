@@ -64,8 +64,18 @@
 
     <flow name="GridFS Load File">
         <vm:inbound-endpoint path="gridfs.load.in"/>
-        <mongodb:gridfs-file bucket="foo" />
+        <mongodb:gridfs-file bucket="foo"/>
         <vm:outbound-endpoint path="gridfs.load.out"/>
+    </flow>
+
+    <flow name="GridFS Query For File By ID">
+        <vm:inbound-endpoint path="gridfs.query.in">
+            <message-properties-transformer>
+                <add-message-property key="MONGO_ID" value="#[header:INBOUND:MONGO_ID]"/>
+            </message-properties-transformer>
+        </vm:inbound-endpoint>
+        <mongodb:gridfs-file bucket="foo" query='{ "_id": "#[header:MONGO_ID]" }'/>
+        <vm:outbound-endpoint path="gridfs.query.out"/>
     </flow>
 
 </mule>

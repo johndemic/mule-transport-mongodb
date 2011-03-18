@@ -16,6 +16,7 @@ import com.mongodb.ServerAddress;
 import org.mule.api.MuleContext;
 import org.mule.api.MuleException;
 import org.mule.api.lifecycle.InitialisationException;
+import org.mule.api.registry.MuleRegistry;
 import org.mule.transport.AbstractConnector;
 import org.mule.util.StringUtils;
 
@@ -35,6 +36,9 @@ public class MongoDBConnector extends AbstractConnector {
     public static final String MULE_MONGO_UPDATE_QUERY = "update_query";
     public static final String MULE_MONGO_UPDATE_UPSERT = "update_upsert";
     public static final String MULE_MONGO_UPDATE_MULTI = "update_multi";
+
+    public static final String MULE_MONGO_MONGO_REGISTRY_ID = "mongodb.mongo";
+    public static final String MULE_MONGO_DATABASE_REGISTRY_ID = "mongodb.database";
 
 
     String database;
@@ -79,6 +83,21 @@ public class MongoDBConnector extends AbstractConnector {
                 addresses.add(new ServerAddress(addressComponents[0], Integer.parseInt(addressComponents[1])));
             }
             mongo = new Mongo(addresses);
+        }
+
+
+        MuleRegistry registry = muleContext.getRegistry();
+
+        /*
+         ToDo I need to place the Mongo reference into the registry in order to get at it from GridFSFileLoader.
+          The rub is that if multiple Mongo connectors are configured only the first will be available.  Need to
+          find a better way to handle this.
+          */
+        if (registry.lookupObject("MULE_MONGO_MONGO_REGISTRY_ID") == null) {
+            muleContext.getRegistry().registerObject(MULE_MONGO_MONGO_REGISTRY_ID, mongo);
+            muleContext.getRegistry().registerObject(MULE_MONGO_DATABASE_REGISTRY_ID, database);
+        } else {
+            logger.warn("Mongo and DB objects are already registered");
         }
     }
 

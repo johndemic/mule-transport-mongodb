@@ -6,7 +6,7 @@
     <artifactId>mule-transport-mongodb</artifactId>
     <packaging>jar</packaging>
     <name>Mule Mongodb Transport</name>
-    <version>3.1.0.2</version>
+    <version>3.1.0.3-SNAPSHOT</version>
     <description>Support for MongoDB</description>
 
     <properties>
@@ -218,9 +218,9 @@
     </issueManagement>
 
     <scm>
-        <connection>scm:svn:http://svn.muleforge.org/mongodb/tags/mule-transport-mongodb-3.1.0.2</connection>
-        <developerConnection>scm:svn:https://svn.muleforge.org/mongodb/tags/mule-transport-mongodb-3.1.0.2</developerConnection>
-        <url>http://svn.mongodb.muleforge.org/tags/mule-transport-mongodb-3.1.0.2</url>
+        <connection>scm:svn:http://svn.muleforge.org/mongodb/tags/mule-transport-mongodb-2.2.1.2</connection>
+        <developerConnection>scm:svn:https://svn.muleforge.org/mongodb/tags/mule-transport-mongodb-2.2.1.2</developerConnection>
+        <url>http://svn.mongodb.muleforge.org/tags/mule-transport-mongodb-2.2.1.2</url>
     </scm>
 
 

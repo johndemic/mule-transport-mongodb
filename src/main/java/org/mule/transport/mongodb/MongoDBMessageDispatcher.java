@@ -121,7 +121,7 @@ public class MongoDBMessageDispatcher extends AbstractMessageDispatcher {
                         event.getMessage());
 
         logger.debug("Evaluated query: " + queryString);
-        BasicDBObject query = mapper.readValue(queryString, BasicDBObject.class);
+        BasicDBObject query = MongoUtils.scrubQueryObjectId(mapper.readValue(queryString, BasicDBObject.class));
 
         DB db = connector.getMongo().getDB(connector.getDatabase());
 
@@ -281,7 +281,7 @@ public class MongoDBMessageDispatcher extends AbstractMessageDispatcher {
 
             logger.debug(String.format("%s property is set, building query from %s",
                     MongoDBConnector.MULE_MONGO_UPDATE_QUERY, evaluatedQuery));
-            objectToUpdate = mapper.readValue(evaluatedQuery, BasicDBObject.class);
+            objectToUpdate = MongoUtils.scrubQueryObjectId(mapper.readValue(evaluatedQuery, BasicDBObject.class));
             if (objectToUpdate == null)
                 throw new MongoException("Could not find create update query from: " + updateQuery);
         }

@@ -16,7 +16,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-public class MongoDBMessageRequester extends AbstractMessageRequester  {
+public class MongoDBMessageRequester extends AbstractMessageRequester {
 
     ObjectMapper mapper;
 
@@ -57,7 +57,7 @@ public class MongoDBMessageRequester extends AbstractMessageRequester  {
         db.requestStart();
 
         if (StringUtils.isNotBlank(queryString)) {
-            BasicDBObject query = mapper.readValue(queryString, BasicDBObject.class);
+            BasicDBObject query = MongoUtils.scrubQueryObjectId(mapper.readValue(queryString, BasicDBObject.class));
             cursor = db.getCollection(collection).find(query);
         } else {
             cursor = db.getCollection(collection).find();
@@ -86,7 +86,7 @@ public class MongoDBMessageRequester extends AbstractMessageRequester  {
         BasicDBObject query;
 
         try {
-            query = mapper.readValue(queryString, BasicDBObject.class);
+            query = MongoUtils.scrubQueryObjectId(mapper.readValue(queryString, BasicDBObject.class));
         } catch (IOException e) {
             throw new MongoDBException(e);
         }

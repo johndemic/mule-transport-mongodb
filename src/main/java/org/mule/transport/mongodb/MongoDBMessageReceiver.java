@@ -74,7 +74,8 @@ public class MongoDBMessageReceiver extends AbstractPollingMessageReceiver {
     void pollCollection(String collection) throws Exception {
         List<DBObject> result = new ArrayList<DBObject>();
 
-        BasicDBObject query = mapper.readValue((String) endpoint.getProperty("query"), BasicDBObject.class);
+        BasicDBObject query = MongoUtils.scrubQueryObjectId(
+                mapper.readValue((String) endpoint.getProperty("query"), BasicDBObject.class));
 
         MongoDBConnector mongoConnector = (MongoDBConnector) connector;
 
@@ -104,7 +105,8 @@ public class MongoDBMessageReceiver extends AbstractPollingMessageReceiver {
         db.requestStart();
 
         GridFS gridFS = new GridFS(db, bucket);
-        BasicDBObject query = mapper.readValue((String) endpoint.getProperty("query"), BasicDBObject.class);
+        BasicDBObject query = MongoUtils.scrubQueryObjectId(
+                mapper.readValue((String) endpoint.getProperty("query"), BasicDBObject.class));
 
         List<GridFSDBFile> results = gridFS.find(query);
 

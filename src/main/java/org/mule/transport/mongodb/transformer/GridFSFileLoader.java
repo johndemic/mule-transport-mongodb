@@ -9,6 +9,7 @@ import org.mule.api.MuleMessage;
 import org.mule.api.transformer.TransformerException;
 import org.mule.transformer.AbstractMessageTransformer;
 import org.mule.transport.mongodb.MongoDBConnector;
+import org.mule.transport.mongodb.i18n.MongodbMessages;
 import org.mule.util.StringUtils;
 
 import java.io.IOException;
@@ -24,18 +25,27 @@ public class GridFSFileLoader extends AbstractMessageTransformer {
     String bucket;
     String query;
     String expression = DEFAULT_EXPRESSION;
+    String connector;
 
     @Override
     public Object transformMessage(MuleMessage message, String outputEncoding) throws TransformerException {
-        Mongo mongo = message.getMuleContext().getRegistry().lookupObject(
-                MongoDBConnector.MULE_MONGO_MONGO_REGISTRY_ID);
 
-        String database = message.getMuleContext().getRegistry().lookupObject(
-                MongoDBConnector.MULE_MONGO_DATABASE_REGISTRY_ID);
+        MongoDBConnector mongoConnector;
+
+        if (endpoint != null) {
+            mongoConnector = (MongoDBConnector) endpoint.getConnector();
+        } else {
+            if (this.connector == null) {
+                throw new TransformerException(MongodbMessages.gridfsFileNoConnectorRef(), this);
+            }
+            mongoConnector = (MongoDBConnector) muleContext.getRegistry().lookupConnector(this.connector);
+        }
+
+        Mongo mongo = mongoConnector.getMongo();
 
         String parsedBucket = message.getMuleContext().getExpressionManager().parse(bucket, message);
 
-        GridFS gridFS = new GridFS(mongo.getDB(database), parsedBucket);
+        GridFS gridFS = new GridFS(mongo.getDB(mongoConnector.getDatabase()), parsedBucket);
 
         if (StringUtils.isNotBlank(query)) {
             String parsedQuery = message.getMuleContext().getExpressionManager().parse(
@@ -83,5 +93,9 @@ public class GridFSFileLoader extends AbstractMessageTransformer {
 
     public void setQuery(String query) {
         this.query = query;
+    }
+
+    public void setConnector(String connector) {
+        this.connector = connector;
     }
 }

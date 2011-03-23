@@ -10,16 +10,17 @@
 
 package org.mule.transport.mongodb.i18n;
 
+import org.mule.config.i18n.Message;
 import org.mule.config.i18n.MessageFactory;
 
-public class MongodbMessages extends MessageFactory
-{
+public class MongodbMessages extends MessageFactory {
     private static final String BUNDLE_PATH = getBundlePath("mongodb");
 
-    /*
-    public static Message exampleMessage()
-    {
-        return createMessage(BUNDLE_PATH, 1);
+    private static final MongodbMessages factory = new MongodbMessages();
+
+
+    public static Message gridfsFileNoConnectorRef() {
+        return factory.createMessage(BUNDLE_PATH, 1);
     }
-    */
+
 }

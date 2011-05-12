@@ -62,6 +62,13 @@
         <vm:outbound-endpoint path="query.expr.out"/>
     </flow>
 
+     <flow name="Query Test With Keys">
+        <vm:inbound-endpoint path="query.keys.in"/>
+        <mongodb:outbound-endpoint collection="query" query='{ "name": "John" }'
+                                   exchange-pattern="request-response" keys="{'name': 1}"/>
+        <vm:outbound-endpoint path="query.keys.out"/>
+    </flow>
+
     <flow name="GridFS Load File">
         <vm:inbound-endpoint path="gridfs.load.in"/>
         <mongodb:gridfs-file bucket="foo" connector="mongodbConnector"/>

@@ -125,7 +125,14 @@ public class MongoDBMessageDispatcher extends AbstractMessageDispatcher {
 
         db.requestStart();
 
-        DBCursor cursor = db.getCollection(collection).find(query);
+        DBCursor cursor;
+
+        if (endpoint.getProperty("keys") != null) {
+            cursor = db.getCollection(collection).find(query,
+                    (DBObject) JSON.parse((String) endpoint.getProperty("keys")));
+        } else {
+            cursor = db.getCollection(collection).find(query);
+        }
 
         while (cursor.hasNext()) {
             result.add(cursor.next());
@@ -263,8 +270,12 @@ public class MongoDBMessageDispatcher extends AbstractMessageDispatcher {
                 !event.getEndpoint().getProperties().containsKey("updateQuery")) {
             logger.debug(String.format("%s property is  not set, updating object using _id value of payload",
                     MongoDBConnector.MULE_MONGO_UPDATE_QUERY));
+
+
             objectToUpdate = db.getCollection(collection).findOne(
                     new BasicDBObject("_id", new ObjectId(object.get("_id").toString())));
+
+
             if (!upsert) {
                 throw new MongoException("Object not found from update query and upsert is false");
             }
@@ -320,7 +331,7 @@ public class MongoDBMessageDispatcher extends AbstractMessageDispatcher {
 
         if (payload instanceof String) {
 
-            object = (BasicDBObject) JSON.parse((String ) payload);
+            object = (BasicDBObject) JSON.parse((String) payload);
         }
 
         if (payload instanceof Map) {

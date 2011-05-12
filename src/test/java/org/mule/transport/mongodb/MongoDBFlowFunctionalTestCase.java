@@ -29,14 +29,33 @@ public class MongoDBFlowFunctionalTestCase extends FunctionalTestCase {
         db.requestDone();
     }
 
-
     @Override
     protected String getConfigResources() {
         return "mongodb-global-endpoint-test-config.xml";
     }
 
-    public void testQuery() throws Exception {
+    public void testCanRestrictQueryWithKeys() throws Exception {
+        MuleClient client = new MuleClient(muleContext);
 
+        String payload = "{\"name\": \"John\",\"city\": \"Brooklyn\"}";
+
+        client.send("mongodb://query", payload, null);
+
+        Map<String, String> properties = new HashMap<String, String>();
+        properties.put("FOO", "John");
+        properties.put(MongoDBConnector.MULE_MONGO_WRITE_CONCERN, MongoDBWriteConcern.SAFE.toString());
+
+        client.dispatch("vm://query.keys.in", "", properties);
+
+        MuleMessage result = client.request("vm://query.keys.out", 15000);
+
+        assertNotNull(result);
+
+        List<DBObject> results = (List<DBObject>) result.getPayload();
+        assertEquals(1, results.size());
+    }
+
+    public void testQuery() throws Exception {
 
         MuleClient client = new MuleClient(muleContext);
 

@@ -16,7 +16,6 @@ import com.mongodb.DBObject;
 import com.mongodb.gridfs.GridFS;
 import com.mongodb.gridfs.GridFSDBFile;
 import com.mongodb.util.JSON;
-import org.codehaus.jackson.map.ObjectMapper;
 import org.mule.api.MuleException;
 import org.mule.api.construct.FlowConstruct;
 import org.mule.api.endpoint.InboundEndpoint;
@@ -40,11 +39,9 @@ public class MongoDBMessageReceiver extends AbstractPollingMessageReceiver {
         super(connector, flowConstruct, endpoint);
     }
 
-
     public MongoDBMessageReceiver(Connector connector, Service service,
                                   InboundEndpoint endpoint)
             throws CreateException {
-
         super(connector, service, endpoint);
     }
 
@@ -78,7 +75,14 @@ public class MongoDBMessageReceiver extends AbstractPollingMessageReceiver {
 
         db.requestStart();
 
-        DBCursor cursor = db.getCollection(collection).find(query);
+        DBCursor cursor;
+
+        if (endpoint.getProperty("keys") != null) {
+            cursor = db.getCollection(collection).find(query,
+                    (DBObject) JSON.parse((String) endpoint.getProperty("keys")));
+        } else {
+            cursor = db.getCollection(collection).find(query);
+        }
 
         while (cursor.hasNext()) {
             result.add(cursor.next());

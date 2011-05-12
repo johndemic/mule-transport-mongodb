@@ -147,12 +147,14 @@
         <xsd:attribute name="multi" type="xsd:string"/>
         <xsd:attribute name="writeConcern" type="xsd:string"/>
         <xsd:attribute name="dispatchMode" type="xsd:string"/>
+        <xsd:attribute name="keys" type="xsd:string"/>
     </xsd:attributeGroup>
 
     <xsd:attributeGroup name="inboundAddressAttributes">
         <xsd:attribute name="collection" type="xsd:string"/>
         <xsd:attribute name="bucket" type="xsd:string"/>
         <xsd:attribute name="query" type="xsd:string"/>
+        <xsd:attribute name="keys" type="xsd:string"/>
     </xsd:attributeGroup>
 
     <xsd:attributeGroup name="propertyAttributes">

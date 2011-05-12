@@ -48,7 +48,6 @@ public class MongoDBReplicaSetFunctionalTestCase extends FunctionalTestCase {
                 }
             }
         });
-
     }
 
     public void testCanRequestWithQuery() throws Exception {
@@ -59,7 +58,7 @@ public class MongoDBReplicaSetFunctionalTestCase extends FunctionalTestCase {
         List results = (List) client.request("mongodb://stuff?query=" +
                 URLEncoder.encode("{\"name\":\"foo\"}", "UTF-8"), 15000).getPayload();
 
-        assertEquals(1, results.size());
+        assertTrue(results.size() > 0);
     }
 
 }

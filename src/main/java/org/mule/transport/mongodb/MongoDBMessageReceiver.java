@@ -10,12 +10,12 @@
 
 package org.mule.transport.mongodb;
 
-import com.mongodb.BasicDBObject;
 import com.mongodb.DB;
 import com.mongodb.DBCursor;
 import com.mongodb.DBObject;
 import com.mongodb.gridfs.GridFS;
 import com.mongodb.gridfs.GridFSDBFile;
+import com.mongodb.util.JSON;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.mule.api.MuleException;
 import org.mule.api.construct.FlowConstruct;
@@ -34,13 +34,10 @@ import java.util.List;
  */
 public class MongoDBMessageReceiver extends AbstractPollingMessageReceiver {
 
-    ObjectMapper mapper;
-
 
     public MongoDBMessageReceiver(Connector connector, FlowConstruct flowConstruct, InboundEndpoint endpoint)
             throws CreateException {
         super(connector, flowConstruct, endpoint);
-        mapper = new ObjectMapper();
     }
 
 
@@ -49,7 +46,6 @@ public class MongoDBMessageReceiver extends AbstractPollingMessageReceiver {
             throws CreateException {
 
         super(connector, service, endpoint);
-        mapper = new ObjectMapper();
     }
 
     public void doConnect() throws ConnectException {
@@ -74,8 +70,7 @@ public class MongoDBMessageReceiver extends AbstractPollingMessageReceiver {
     void pollCollection(String collection) throws Exception {
         List<DBObject> result = new ArrayList<DBObject>();
 
-        BasicDBObject query = MongoUtils.scrubQueryObjectId(
-                mapper.readValue((String) endpoint.getProperty("query"), BasicDBObject.class));
+        DBObject query = (DBObject) JSON.parse((String) endpoint.getProperty("query"));
 
         MongoDBConnector mongoConnector = (MongoDBConnector) connector;
 
@@ -105,8 +100,9 @@ public class MongoDBMessageReceiver extends AbstractPollingMessageReceiver {
         db.requestStart();
 
         GridFS gridFS = new GridFS(db, bucket);
-        BasicDBObject query = MongoUtils.scrubQueryObjectId(
-                mapper.readValue((String) endpoint.getProperty("query"), BasicDBObject.class));
+
+        DBObject query = (DBObject) JSON.parse((String) endpoint.getProperty("query"));
+
 
         List<GridFSDBFile> results = gridFS.find(query);
 

@@ -13,8 +13,8 @@ package org.mule.transport.mongodb;
 import com.mongodb.*;
 import com.mongodb.gridfs.GridFS;
 import com.mongodb.gridfs.GridFSInputFile;
+import com.mongodb.util.JSON;
 import org.bson.types.ObjectId;
-import org.codehaus.jackson.map.ObjectMapper;
 import org.mule.api.MuleEvent;
 import org.mule.api.MuleMessage;
 import org.mule.api.endpoint.OutboundEndpoint;
@@ -35,12 +35,10 @@ public class MongoDBMessageDispatcher extends AbstractMessageDispatcher {
 
     MongoDBConnector connector;
 
-    ObjectMapper mapper;
 
     public MongoDBMessageDispatcher(OutboundEndpoint endpoint) {
         super(endpoint);
         connector = (MongoDBConnector) endpoint.getConnector();
-        mapper = new ObjectMapper();
     }
 
     public void doConnect() throws Exception {
@@ -121,7 +119,7 @@ public class MongoDBMessageDispatcher extends AbstractMessageDispatcher {
                         event.getMessage());
 
         logger.debug("Evaluated query: " + queryString);
-        BasicDBObject query = MongoUtils.scrubQueryObjectId(mapper.readValue(queryString, BasicDBObject.class));
+        DBObject query = (DBObject) JSON.parse(queryString);
 
         DB db = connector.getMongo().getDB(connector.getDatabase());
 
@@ -281,7 +279,9 @@ public class MongoDBMessageDispatcher extends AbstractMessageDispatcher {
 
             logger.debug(String.format("%s property is set, building query from %s",
                     MongoDBConnector.MULE_MONGO_UPDATE_QUERY, evaluatedQuery));
-            objectToUpdate = MongoUtils.scrubQueryObjectId(mapper.readValue(evaluatedQuery, BasicDBObject.class));
+
+            objectToUpdate = (DBObject) JSON.parse(evaluatedQuery);
+
             if (objectToUpdate == null)
                 throw new MongoException("Could not find create update query from: " + updateQuery);
         }
@@ -319,7 +319,8 @@ public class MongoDBMessageDispatcher extends AbstractMessageDispatcher {
         BasicDBObject object = null;
 
         if (payload instanceof String) {
-            object = mapper.readValue((String) payload, BasicDBObject.class);
+
+            object = (BasicDBObject) JSON.parse((String ) payload);
         }
 
         if (payload instanceof Map) {

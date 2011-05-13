@@ -11,8 +11,7 @@
                        database="myDB"
                        username="user"
                        password="pass"
-                       hostname="localhost"
-                       port="27017"
+                       uri="mongodb://localhost"
                        pollingFrequency="5000">
     </mongodb:connector>
 

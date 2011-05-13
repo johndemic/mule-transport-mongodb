@@ -47,30 +47,13 @@
                     </xsd:annotation>
                 </xsd:attribute>
 
-                <xsd:attribute name="hostname" type="xsd:string">
+                <xsd:attribute name="uri" type="xsd:string">
                     <xsd:annotation>
                         <xsd:documentation>
-                            The MongoDB host
+                            The MongoDB URI
                         </xsd:documentation>
                     </xsd:annotation>
                 </xsd:attribute>
-
-                <xsd:attribute name="port" type="xsd:string">
-                    <xsd:annotation>
-                        <xsd:documentation>
-                            The MongoDB port
-                        </xsd:documentation>
-                    </xsd:annotation>
-                </xsd:attribute>
-
-                <xsd:attribute name="replicaSet" type="xsd:string">
-                    <xsd:annotation>
-                        <xsd:documentation>
-                            A list of host:port entries seperated by commas (ie, 192.168.1.10:27017,192.168.1.11:27017)
-                        </xsd:documentation>
-                    </xsd:annotation>
-                </xsd:attribute>
-
 
                 <xsd:attribute name="username" type="xsd:string">
                     <xsd:annotation>

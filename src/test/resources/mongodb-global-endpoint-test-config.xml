@@ -14,7 +14,7 @@
                        username="user"
                        password="pass"
                        pollingFrequency="1000"
-                       hostname="localhost"/>
+                        uri="mongodb://localhost"/>
 
 
     <mongodb:endpoint name="mongoGlobalOutboundEndpoint" collection="stuff"/>

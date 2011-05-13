@@ -31,10 +31,6 @@ public class MongoDBConnector extends AbstractConnector {
     public static final String MULE_MONGO_UPDATE_UPSERT = "update_upsert";
     public static final String MULE_MONGO_UPDATE_MULTI = "update_multi";
 
-    public static final String MULE_MONGO_MONGO_REGISTRY_ID = "mongodb.mongo";
-    public static final String MULE_MONGO_DATABASE_REGISTRY_ID = "mongodb.database";
-
-
     String database;
     String uri = "mongodb://localhost";
     String username;
@@ -42,6 +38,7 @@ public class MongoDBConnector extends AbstractConnector {
     Long pollingFrequency = 1000L;
 
     Mongo mongo;
+    MongoURI mongoURI;
 
     public MongoDBConnector(MuleContext context) {
         super(context);
@@ -55,7 +52,8 @@ public class MongoDBConnector extends AbstractConnector {
     }
 
     public void doConnect() throws Exception {
-        mongo = new Mongo(new MongoURI(uri));
+        mongoURI = new MongoURI(uri);
+        mongo = new Mongo(mongoURI);
     }
 
     public void doDisconnect() throws Exception {
@@ -123,4 +121,7 @@ public class MongoDBConnector extends AbstractConnector {
         this.pollingFrequency = Long.parseLong(pollingFrequency);
     }
 
+    public MongoURI getMongoURI() {
+        return mongoURI;
+    }
 }

@@ -24,6 +24,7 @@ import org.mule.api.service.Service;
 import org.mule.api.transport.Connector;
 import org.mule.transport.AbstractPollingMessageReceiver;
 import org.mule.transport.ConnectException;
+import org.mule.util.StringUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -71,7 +72,15 @@ public class MongoDBMessageReceiver extends AbstractPollingMessageReceiver {
 
         MongoDBConnector mongoConnector = (MongoDBConnector) connector;
 
-        DB db = mongoConnector.getMongo().getDB(mongoConnector.getDatabase());
+        DB db;
+
+        if (StringUtils.isNotBlank(mongoConnector.getMongoURI().getDatabase())) {
+            db = mongoConnector.getMongo().getDB(mongoConnector.getMongoURI().getDatabase());
+
+        } else {
+            db = mongoConnector.getMongo().getDB(mongoConnector.getDatabase());
+        }
+
 
         db.requestStart();
 
@@ -99,7 +108,14 @@ public class MongoDBMessageReceiver extends AbstractPollingMessageReceiver {
 
         MongoDBConnector mongoConnector = (MongoDBConnector) connector;
 
-        DB db = mongoConnector.getMongo().getDB(mongoConnector.getDatabase());
+        DB db;
+
+        if (StringUtils.isNotBlank(mongoConnector.getMongoURI().getDatabase())) {
+            db = mongoConnector.getMongo().getDB(mongoConnector.getMongoURI().getDatabase());
+
+        } else {
+            db = mongoConnector.getMongo().getDB(mongoConnector.getDatabase());
+        }
 
         db.requestStart();
 

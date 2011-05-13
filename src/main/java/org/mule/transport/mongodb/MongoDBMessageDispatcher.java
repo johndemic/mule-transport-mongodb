@@ -121,7 +121,14 @@ public class MongoDBMessageDispatcher extends AbstractMessageDispatcher {
         logger.debug("Evaluated query: " + queryString);
         DBObject query = (DBObject) JSON.parse(queryString);
 
-        DB db = connector.getMongo().getDB(connector.getDatabase());
+        DB db;
+
+        if (StringUtils.isNotBlank(connector.getMongoURI().getDatabase())) {
+            db = connector.getMongo().getDB(connector.getMongoURI().getDatabase());
+
+        } else {
+            db = connector.getMongo().getDB(connector.getDatabase());
+        }
 
         db.requestStart();
 
@@ -145,7 +152,15 @@ public class MongoDBMessageDispatcher extends AbstractMessageDispatcher {
     protected Object doDispatchToCollection(MuleEvent event, String collection) throws Exception {
         Object payload = event.getMessage().getPayload();
 
-        DB db = connector.getMongo().getDB(connector.getDatabase());
+        DB db;
+
+        if (StringUtils.isNotBlank(connector.getMongoURI().getDatabase())) {
+            db = connector.getMongo().getDB(connector.getMongoURI().getDatabase());
+
+        } else {
+            db = connector.getMongo().getDB(connector.getDatabase());
+        }
+
         db.requestStart();
 
         if (payload instanceof List) {
@@ -350,7 +365,15 @@ public class MongoDBMessageDispatcher extends AbstractMessageDispatcher {
     }
 
     protected Object doDispatchToBucket(MuleEvent event, String bucket) throws Exception {
-        DB db = connector.getMongo().getDB(connector.getDatabase());
+        DB db;
+
+        if (StringUtils.isNotBlank(connector.getMongoURI().getDatabase())) {
+            db = connector.getMongo().getDB(connector.getMongoURI().getDatabase());
+
+        } else {
+            db = connector.getMongo().getDB(connector.getDatabase());
+        }
+
         GridFS gridFS = new GridFS(db, bucket);
 
         db.requestStart();

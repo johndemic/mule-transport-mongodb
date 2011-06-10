@@ -131,6 +131,7 @@
         <xsd:attribute name="writeConcern" type="xsd:string"/>
         <xsd:attribute name="dispatchMode" type="xsd:string"/>
         <xsd:attribute name="keys" type="xsd:string"/>
+        <xsd:attribute name="contentType" type="xsd:string"/>
     </xsd:attributeGroup>
 
     <xsd:attributeGroup name="inboundAddressAttributes">

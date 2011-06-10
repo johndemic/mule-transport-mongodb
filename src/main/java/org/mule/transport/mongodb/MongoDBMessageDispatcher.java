@@ -382,7 +382,6 @@ public class MongoDBMessageDispatcher extends AbstractMessageDispatcher {
 
         GridFSInputFile file = null;
 
-
         if (payload instanceof File) {
             file = gridFS.createFile((File) payload);
         }
@@ -410,6 +409,17 @@ public class MongoDBMessageDispatcher extends AbstractMessageDispatcher {
             file.setFilename(filename);
         }
 
+        String contentType = event.getMessage().getOutboundProperty(MongoDBConnector.PROPERTY_CONTENT_TYPE, "");
+
+        if (StringUtils.isBlank(contentType) && event.getEndpoint().getProperties().containsKey("contentType")) {
+            contentType = (String) event.getEndpoint().getProperty("contentType");
+        }
+
+        if (StringUtils.isNotBlank(contentType)) {
+            logger.debug("Setting contentType on GridFS file to: " + contentType);
+            file.setContentType(contentType);
+        }
+
         logger.debug("Attempting to save file: " + file.getFilename());
 
         Date startTime = new Date();
@@ -419,7 +429,6 @@ public class MongoDBMessageDispatcher extends AbstractMessageDispatcher {
         long elapsed = endTime.getTime() - startTime.getTime();
 
         logger.debug(String.format("GridFS file %s saved in %s seconds", file.getId(), elapsed / 1000.0));
-
 
         file.validate();
 

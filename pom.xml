@@ -6,7 +6,7 @@
     <artifactId>mule-transport-mongodb</artifactId>
     <packaging>jar</packaging>
     <name>Mule Mongodb Transport</name>
-    <version>3.1.2.0</version>
+    <version>3.1.2.1-SNAPSHOT</version>
     <description>Support for MongoDB</description>
 
     <properties>

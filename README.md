@@ -1,6 +1,3 @@
-Mule MongoDB Transport
-======================
-
 Overview
 --------
 The MongoDB transport allows you to insert and retrieve data from MongoDB
@@ -209,7 +206,7 @@ This demonstrates a flow that performs a query against a collection using a
 expression to enrich the query.
 
 Using GridFS
-============
+------------
 
 As of version 2.2.1.4, the MongoDB transport supports GridFS.
 
@@ -302,7 +299,7 @@ value="#[header:INBOUND:MONGO_ID]"/>
 </flow>
 ```
 
-=== Using a Requestor
+### Using a Requestor
 
 You can use MuleClient to fetch GridFSDBFile from MongoDB:
 
@@ -316,7 +313,7 @@ Note that the JSON query needs to encoded. The results, as with the
 inbound-endpoint, will be instances of GridFSDBFile.
 
 The objectId Property
-=====================
+---------------------
 
 Messages sent to a collection or bucket will get an outbound property called
 "objectId" set corresponding to the "_id" field of the document or file. You can

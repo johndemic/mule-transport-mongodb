@@ -28,6 +28,7 @@ import org.mule.util.StringUtils;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * <code>MongoDBMessageReceiver</code> periodically polls a collection and returns the result.
@@ -66,7 +67,7 @@ public class MongoDBMessageReceiver extends AbstractPollingMessageReceiver {
     }
 
     void pollCollection(String collection) throws Exception {
-        List<DBObject> result = new ArrayList<DBObject>();
+        List<Map> result = new ArrayList<Map>();
 
         DBObject query = (DBObject) JSON.parse((String) endpoint.getProperty("query"));
 
@@ -94,7 +95,7 @@ public class MongoDBMessageReceiver extends AbstractPollingMessageReceiver {
         }
 
         while (cursor.hasNext()) {
-            result.add(cursor.next());
+            result.add(cursor.next().toMap());
         }
 
         db.requestDone();

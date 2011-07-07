@@ -179,7 +179,7 @@ public class MongoDBMessageDispatcher extends AbstractMessageDispatcher {
             }
             db.requestDone();
 
-            return result;
+            return result.toMap();
         }
     }
 

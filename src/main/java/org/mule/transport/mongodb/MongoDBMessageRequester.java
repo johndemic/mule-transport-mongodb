@@ -3,7 +3,6 @@ package org.mule.transport.mongodb;
 import com.mongodb.BasicDBObject;
 import com.mongodb.DB;
 import com.mongodb.DBCursor;
-import com.mongodb.DBObject;
 import com.mongodb.gridfs.GridFS;
 import com.mongodb.gridfs.GridFSDBFile;
 import org.codehaus.jackson.map.ObjectMapper;
@@ -15,6 +14,7 @@ import org.mule.util.StringUtils;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 public class MongoDBMessageRequester extends AbstractMessageRequester {
 
@@ -45,7 +45,7 @@ public class MongoDBMessageRequester extends AbstractMessageRequester {
 
     Object doRequestForCollection(String collection, String queryString) throws Exception {
 
-        List<DBObject> result = new ArrayList<DBObject>();
+        List<Map> result = new ArrayList<Map>();
 
         logger.debug("Requesting all documents in collection: " + collection);
 
@@ -64,7 +64,7 @@ public class MongoDBMessageRequester extends AbstractMessageRequester {
         }
 
         while (cursor.hasNext()) {
-            result.add(cursor.next());
+            result.add(cursor.next().toMap());
         }
 
         db.requestDone();

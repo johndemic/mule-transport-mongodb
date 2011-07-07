@@ -10,16 +10,10 @@
        ">
 
     <mongodb:connector name="mongodbConnector"
-                       database="mule-mongodb"
-                       username="user"
-                       password="pass"
-                       pollingFrequency="5000"
-                       uri="mongodb://localhost"
-            >
-    </mongodb:connector>
+                       uri="mongodb://user:pass@localhost:27017/mule-mongodb"
+                       pollingFrequency="5000"/>
 
     <vm:connector name="vmConnector"/>
-
 
     <notifications dynamic="true">
         <notification event="ENDPOINT-MESSAGE"/>

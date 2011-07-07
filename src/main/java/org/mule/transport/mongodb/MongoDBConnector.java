@@ -32,10 +32,7 @@ public class MongoDBConnector extends AbstractConnector {
     public static final String MULE_MONGO_UPDATE_UPSERT = "update_upsert";
     public static final String MULE_MONGO_UPDATE_MULTI = "update_multi";
 
-    String database;
     String uri = "mongodb://localhost";
-    String username;
-    String password;
     Long pollingFrequency = 1000L;
 
     Mongo mongo;
@@ -53,6 +50,7 @@ public class MongoDBConnector extends AbstractConnector {
     }
 
     public void doConnect() throws Exception {
+        logger.debug("Attempting to connect with MongoURI: " + uri);
         mongoURI = new MongoURI(uri);
         mongo = new Mongo(mongoURI);
     }
@@ -74,14 +72,6 @@ public class MongoDBConnector extends AbstractConnector {
         return MONGODB;
     }
 
-    public String getDatabase() {
-        return database;
-    }
-
-    public void setDatabase(String database) {
-        this.database = database;
-    }
-
     public String getUri() {
         return uri;
     }
@@ -98,21 +88,6 @@ public class MongoDBConnector extends AbstractConnector {
         this.pollingFrequency = pollingFrequency;
     }
 
-    public String getUsername() {
-        return username;
-    }
-
-    public void setUsername(String username) {
-        this.username = username;
-    }
-
-    public String getPassword() {
-        return password;
-    }
-
-    public void setPassword(String password) {
-        this.password = password;
-    }
 
     public Mongo getMongo() {
         return mongo;

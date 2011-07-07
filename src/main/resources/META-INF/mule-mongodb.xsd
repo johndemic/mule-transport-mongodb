@@ -39,13 +39,6 @@
     <xsd:complexType name="mongodbConnectorType">
         <xsd:complexContent>
             <xsd:extension base="mule:connectorType">
-                <xsd:attribute name="database" type="xsd:string" use="required">
-                    <xsd:annotation>
-                        <xsd:documentation>
-                            The name of the db to use
-                        </xsd:documentation>
-                    </xsd:annotation>
-                </xsd:attribute>
 
                 <xsd:attribute name="uri" type="xsd:string">
                     <xsd:annotation>
@@ -54,23 +47,6 @@
                         </xsd:documentation>
                     </xsd:annotation>
                 </xsd:attribute>
-
-                <xsd:attribute name="username" type="xsd:string">
-                    <xsd:annotation>
-                        <xsd:documentation>
-                            The username to connect with
-                        </xsd:documentation>
-                    </xsd:annotation>
-                </xsd:attribute>
-
-                <xsd:attribute name="password" type="xsd:string">
-                    <xsd:annotation>
-                        <xsd:documentation>
-                            The password to connect with
-                        </xsd:documentation>
-                    </xsd:annotation>
-                </xsd:attribute>
-
 
                 <xsd:attribute name="pollingFrequency" type="xsd:string">
                     <xsd:annotation>

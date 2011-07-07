@@ -8,12 +8,8 @@
        ">
 
     <mongodb:connector name="mongodbConnector"
-                       database="myDB"
-                       username="user"
-                       password="pass"
-                       uri="mongodb://localhost"
-                       pollingFrequency="5000">
-    </mongodb:connector>
+                       pollingFrequency="5000"
+                       uri="mongodb://user:pass@localhost:27017/mule-mongodb"/>
 
     <model>
         <service name="MongoDB Test Input Service">

@@ -9,13 +9,9 @@
        http://www.mulesoft.org/schema/mule/vm http://www.mulesoft.org/schema/mule/vm/3.1/mule-vm.xsd
        ">
 
-    <mongodb:connector name="mongodbConnector"
-                       database="mule-mongodb"
-                       username="user"
-                       password="pass"
-                       pollingFrequency="1000"
-                        uri="mongodb://localhost"/>
-
+       <mongodb:connector name="mongodbConnector"
+                       pollingFrequency="5000"
+                       uri="mongodb://user:pass@localhost:27017/mule-mongodb" />
 
     <mongodb:endpoint name="mongoGlobalOutboundEndpoint" collection="stuff"/>
     <mongodb:endpoint name="mongoGlobalInboundEndpoint" collection="foo" query='{ "name": "foo2" }'/>
@@ -62,7 +58,7 @@
         <vm:outbound-endpoint path="query.expr.out"/>
     </flow>
 
-     <flow name="Query Test With Keys">
+    <flow name="Query Test With Keys">
         <vm:inbound-endpoint path="query.keys.in"/>
         <mongodb:outbound-endpoint collection="query" query='{ "name": "John" }'
                                    exchange-pattern="request-response" keys="{'name': 1}"/>

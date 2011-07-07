@@ -127,7 +127,7 @@ public class MongoDBMessageDispatcher extends AbstractMessageDispatcher {
             db = connector.getMongo().getDB(connector.getMongoURI().getDatabase());
 
         } else {
-            db = connector.getMongo().getDB(connector.getDatabase());
+            db = connector.getMongo().getDB(connector.getMongoURI().getDatabase());
         }
 
         db.requestStart();
@@ -153,14 +153,7 @@ public class MongoDBMessageDispatcher extends AbstractMessageDispatcher {
         Object payload = event.getMessage().getPayload();
 
         DB db;
-
-        if (StringUtils.isNotBlank(connector.getMongoURI().getDatabase())) {
-            db = connector.getMongo().getDB(connector.getMongoURI().getDatabase());
-
-        } else {
-            db = connector.getMongo().getDB(connector.getDatabase());
-        }
-
+        db = connector.getMongo().getDB(connector.getMongoURI().getDatabase());
         db.requestStart();
 
         if (payload instanceof List) {
@@ -371,7 +364,7 @@ public class MongoDBMessageDispatcher extends AbstractMessageDispatcher {
             db = connector.getMongo().getDB(connector.getMongoURI().getDatabase());
 
         } else {
-            db = connector.getMongo().getDB(connector.getDatabase());
+            db = connector.getMongo().getDB(connector.getMongoURI().getDatabase());
         }
 
         GridFS gridFS = new GridFS(db, bucket);
@@ -430,7 +423,15 @@ public class MongoDBMessageDispatcher extends AbstractMessageDispatcher {
 
         logger.debug(String.format("GridFS file %s saved in %s seconds", file.getId(), elapsed / 1000.0));
 
-        file.validate();
+        try {
+            file.validate();
+        } catch (MongoException ex) {
+            if (ex.getMessage().startsWith("md5 differ")) {
+                logger.error("MD5 checksum mismatch while saving the file. " +
+                        "This may be the real deal or is possibly an issue that keeps recurring with" +
+                        " some releases of the Java driver ");
+            }
+        }
 
         ObjectId id = (ObjectId) file.getId();
         event.getMessage().setOutboundProperty(MongoDBConnector.PROPERTY_OBJECT_ID, id.toStringMongod());

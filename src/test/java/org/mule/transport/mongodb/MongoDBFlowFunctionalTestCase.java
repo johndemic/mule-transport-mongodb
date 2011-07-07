@@ -3,6 +3,7 @@ package org.mule.transport.mongodb;
 import com.mongodb.DB;
 import com.mongodb.DBObject;
 import com.mongodb.Mongo;
+import com.mongodb.MongoURI;
 import com.mongodb.gridfs.GridFS;
 import com.mongodb.gridfs.GridFSDBFile;
 import com.mongodb.gridfs.GridFSInputFile;
@@ -23,10 +24,9 @@ public class MongoDBFlowFunctionalTestCase extends FunctionalTestCase {
     protected void doSetUp() throws Exception {
         super.doSetUp();
         logger.debug("Dropping database");
-        Mongo m = new Mongo("localhost", 27017);
+        Mongo m = new Mongo(new MongoURI("mongodb://user:pass@localhost:27017/mule-mongodb"));
         db = m.getDB("mule-mongodb");
         db.dropDatabase();
-        db.requestDone();
     }
 
     @Override

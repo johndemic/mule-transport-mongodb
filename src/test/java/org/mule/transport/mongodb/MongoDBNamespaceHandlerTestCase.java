@@ -24,10 +24,10 @@ public class MongoDBNamespaceHandlerTestCase extends FunctionalTestCase {
         assertNotNull(c);
         assertTrue(c.isConnected());
         assertTrue(c.isStarted());
-        assertEquals(c.getUri(), "mongodb://localhost");
-        assertEquals(c.getDatabase(), "myDB");
-        assertEquals(c.getUsername(), "user");
-        assertEquals(c.getPassword(), "pass");
+        assertEquals("mongodb://user:pass@localhost:27017/mule-mongodb", c.getUri());
+        assertEquals("mule-mongodb", c.getMongoURI().getDatabase());
+        assertEquals("user", c.getMongoURI().getUsername());
+        assertEquals("pass", new String(c.getMongoURI().getPassword()));
 
     }
 }

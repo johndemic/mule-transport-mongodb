@@ -45,7 +45,7 @@ public class GridFSFileLoader extends AbstractMessageTransformer {
 
         String parsedBucket = message.getMuleContext().getExpressionManager().parse(bucket, message);
 
-        GridFS gridFS = new GridFS(mongo.getDB(mongoConnector.getDatabase()), parsedBucket);
+        GridFS gridFS = new GridFS(mongo.getDB(mongoConnector.getMongoURI().getDatabase()), parsedBucket);
 
         if (StringUtils.isNotBlank(query)) {
             String parsedQuery = message.getMuleContext().getExpressionManager().parse(

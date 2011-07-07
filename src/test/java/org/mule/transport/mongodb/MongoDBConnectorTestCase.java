@@ -21,8 +21,8 @@ public class MongoDBConnectorTestCase extends AbstractConnectorTestCase
     {
 
         MongoDBConnector c = new MongoDBConnector(muleContext);
+        c.setUri("mongodb://localhost");
         c.setName("Test");
-        c.setDatabase("asdas");
         return c;
     }
 

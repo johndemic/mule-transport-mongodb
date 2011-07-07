@@ -78,7 +78,7 @@ public class MongoDBMessageReceiver extends AbstractPollingMessageReceiver {
             db = mongoConnector.getMongo().getDB(mongoConnector.getMongoURI().getDatabase());
 
         } else {
-            db = mongoConnector.getMongo().getDB(mongoConnector.getDatabase());
+            db = mongoConnector.getMongo().getDB(mongoConnector.getMongoURI().getDatabase());
         }
 
 
@@ -114,7 +114,7 @@ public class MongoDBMessageReceiver extends AbstractPollingMessageReceiver {
             db = mongoConnector.getMongo().getDB(mongoConnector.getMongoURI().getDatabase());
 
         } else {
-            db = mongoConnector.getMongo().getDB(mongoConnector.getDatabase());
+            db = mongoConnector.getMongo().getDB(mongoConnector.getMongoURI().getDatabase());
         }
 
         db.requestStart();

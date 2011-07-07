@@ -50,7 +50,7 @@ public class MongoDBMessageRequester extends AbstractMessageRequester {
         logger.debug("Requesting all documents in collection: " + collection);
 
         MongoDBConnector mongoConnector = (MongoDBConnector) connector;
-        DB db = mongoConnector.getMongo().getDB(mongoConnector.getDatabase());
+        DB db = mongoConnector.getMongo().getDB(mongoConnector.getMongoURI().getDatabase());
 
         DBCursor cursor;
 
@@ -76,7 +76,7 @@ public class MongoDBMessageRequester extends AbstractMessageRequester {
     Object doRequestForBucket(String bucket, String queryString) throws Exception {
 
         MongoDBConnector mongoConnector = (MongoDBConnector) connector;
-        DB db = mongoConnector.getMongo().getDB(mongoConnector.getDatabase());
+        DB db = mongoConnector.getMongo().getDB(mongoConnector.getMongoURI().getDatabase());
 
         GridFS gridFS = new GridFS(db, bucket);
 

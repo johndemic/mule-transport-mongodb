@@ -10,7 +10,7 @@
     <description>Support for MongoDB</description>
 
     <properties>
-        <mule.version>3.1.2</mule.version>
+        <mule.version>3.6.0</mule.version>
         <!-- Tools properties -->
         <eclipsePluginVersion>2.5</eclipsePluginVersion>
         <vmtype>org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType</vmtype>
@@ -228,7 +228,7 @@
     <ciManagement>
         <system>Bamboo</system>
         <url>http://bamboo.muleforge.org/browse/MONGODB-FORGE</url>
-        <notifiers />
+        <notifiers/>
     </ciManagement>
 
     <distributionManagement>
